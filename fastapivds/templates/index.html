@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Brain - Открой зеленый мир</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">✈️</span>
+                <span class="logo-text">Green Brain</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Главная</a></li>
+                <li><a href="#destinations">Направления</a></li>
+                <li><a href="#about">О нас</a></li>
+                <li><a href="#contact">Контакты</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero" id="home">
+        <div class="floating-icons">
+            <span class="float-icon">🌍</span>
+            <span class="float-icon">✈️</span>
+            <span class="float-icon">🗺️</span>
+            <span class="float-icon">🌴</span>
+            <span class="float-icon">🏔️</span>
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="gradient-text">Открой для себя</span><br>
+                <span class="white-text">мир путешествий</span>
+            </h1>
+            <p class="hero-subtitle">
+                Исследуйте самые красивые уголки планеты с нашими эксклюзивными турами
+            </p>
+            <div class="hero-buttons">
+                <a href="#destinations" class="btn btn-primary btn-large">Начать путешествие</a>
+                <a href="#about" class="btn btn-secondary btn-large">Узнать больше</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="destinations" id="destinations">
+        <div class="container">
+            <h2 class="section-title"><span class="gradient-text">Популярные направления</span></h2>
+            <p class="section-subtitle">Выберите идеальное место для вашего отпуска</p>
+            <div class="destinations-grid">
+                {% for dest in destinations %}
+                <div class="destination-card">
+                    <div class="card-icon">{{ dest.image }}</div>
+                    <h3 class="card-title">{{ dest.name }}</h3>
+                    <p class="card-description">{{ dest.description }}</p>
+                    <button class="card-btn">Подробнее →</button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item"><div class="stat-number" data-target="50000">0</div><div class="stat-label">Довольных клиентов</div></div>
+                <div class="stat-item"><div class="stat-number" data-target="120">0</div><div class="stat-label">Стран мира</div></div>
+                <div class="stat-item"><div class="stat-number" data-target="15">0</div><div class="stat-label">Лет опыта</div></div>
+                <div class="stat-item"><div class="stat-number" data-target="500">0</div><div class="stat-label">Туров в год</div></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="about" id="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 class="section-title" style="text-align: left;"><span class="gradient-text">Почему выбирают нас?</span></h2>
+                    <p class="about-description">
+                        Мы создаём незабываемые путешествия уже более 15 лет. Наша команда профессионалов позаботится о каждой детали вашего отдыха.
+                    </p>
+                    <div class="features">
+                        <div class="feature"><div class="feature-icon">🎯</div><span>Индивидуальный подход</span></div>
+                        <div class="feature"><div class="feature-icon">💎</div><span>Премиум сервис</span></div>
+                        <div class="feature"><div class="feature-icon">🛡️</div><span>Гарантия качества</span></div>
+                        <div class="feature"><div class="feature-icon">💰</div><span>Лучшие цены</span></div>
+                    </div>
+                </div>
+                <div class="about-visual">
+                    <div class="visual-card">
+                        <div class="visual-emoji">🌟</div>
+                        <p>Green Brain</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="hippo-section">
+        <div class="container">
+            <h2 class="section-title"><span class="gradient-text">Наш талисман</span></h2>
+            <p class="section-subtitle">Знакомьтесь - наш офисный работник!</p>
+            <div class="hippo-container">
+                <div class="hippo-card">
+                    <img src="{{ url_for('static', path='images/backoffice.png') }}" alt="Бегемот за работой" class="hippo-image">
+                    <p class="hippo-caption">🦴 Всегда готов помочь с планированием вашего отпуска! 🌴</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact" id="contact">
+        <div class="container">
+            <h2 class="section-title"><span class="gradient-text">Готовы к путешествию?</span></h2>
+            <p class="section-subtitle">Оставьте заявку и мы свяжемся с вами</p>
+            <form class="contact-form">
+                <div class="form-group"><input type="text" placeholder="Ваше имя" required></div>
+                <div class="form-group"><input type="email" placeholder="Email" required></div>
+                <div class="form-group"><input type="tel" placeholder="Телефон"></div>
+                <button type="submit" class="btn btn-primary btn-large">Отправить заявку 🚀</button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="logo"><span class="logo-icon">✈️</span><span class="logo-text">Green Brain</span></div>
+                <p class="footer-text">© 2025 Green Brain. Все права защищены.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link">📱</a>
+                    <a href="#" class="social-link">📧</a>
+                    <a href="#" class="social-link">💬</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', path='js/main.js') }}"></script>
+</body>
+</html>
