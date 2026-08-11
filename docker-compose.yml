@@ -6,7 +6,7 @@ services:
     container_name: tutu-travel-agent
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8001:8000"   # слева порт на хосте, справа — внутри контейнера
     env_file:
       - .env
     environment:

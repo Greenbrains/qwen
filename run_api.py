@@ -12,7 +12,7 @@ def main() -> None:
     print("   WS:       /ws (текст), /ws/voice (голос)")
     uvicorn.run(
         "interfaces.api.app:app",
-        host="127.0.0.1",
+        host="0.0.0.0",
         port=settings.api_port,
         reload=False,
     )

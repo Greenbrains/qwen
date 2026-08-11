@@ -7,6 +7,9 @@ dist/
 build/
 target/
 
+logs.txt
+logs_lite.txt
+
 # Python
 __pycache__/
 *.pyc
