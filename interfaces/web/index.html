@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tutu Travel Agent</title>
+<title>Tutu Travel Agent - Green Brain</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -13,9 +13,10 @@
     }
     .container {
         background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        width: 100%; max-width: 800px; padding: 30px;
+        width: 100%; max-width: 900px; padding: 30px; position: relative;
     }
-    h1 { color: #333; margin-bottom: 20px; text-align: center; }
+    h1 { color: #333; margin-bottom: 10px; text-align: center; }
+    .subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; }
     .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
     .tab {
         flex: 1; padding: 12px; border: 2px solid #667eea; background: white;
@@ -25,10 +26,10 @@
     .chat-container { display: none; }
     .chat-container.active { display: block; }
     #chatMessages {
-        height: 400px; overflow-y: auto; border: 2px solid #e0e0e0; border-radius: 10px;
+        height: 450px; overflow-y: auto; border: 2px solid #e0e0e0; border-radius: 10px;
         padding: 15px; margin-bottom: 15px; background: #f9f9f9;
     }
-    .message { margin-bottom: 10px; padding: 10px 15px; border-radius: 15px; max-width: 80%; white-space: pre-wrap; }
+    .message { margin-bottom: 10px; padding: 10px 15px; border-radius: 15px; max-width: 80%; white-space: pre-wrap; word-wrap: break-word; }
     .user { background: #667eea; color: white; margin-left: auto; }
     .agent { background: #e0e0e0; color: #333; }
     .system { background: #fff3cd; color: #856404; font-style: italic; font-size: 14px; }
@@ -41,33 +42,46 @@
         cursor: pointer; font-size: 16px; transition: background 0.3s;
     }
     button:hover { background: #5568d3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
     #voiceButton { width: 100%; padding: 20px; font-size: 18px; background: #4CAF50; }
     #voiceButton.recording { background: #f44336; animation: pulse 1s infinite; }
     @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.7;} }
     .status { text-align: center; margin-top: 10px; color: #666; font-size: 14px; min-height: 20px; }
     .info { font-size: 12px; color: #999; text-align: center; margin-top: 5px; }
+    .clear-btn { 
+        position: absolute; top: 10px; right: 10px; 
+        background: #ff4444; padding: 8px 12px; font-size: 14px; border: none;
+    }
+    .clear-btn:hover { background: #cc0000; }
+    @media (max-width: 600px) {
+        .container { padding: 15px; }
+        #chatMessages { height: 350px; }
+        .tab { font-size: 14px; padding: 10px; }
+    }
 </style>
 </head>
 <body>
 <div class="container">
+    <button class="clear-btn" id="clearBtn" title="Очистить историю">🗑️ Очистить</button>
     <h1>🚆 Tutu Travel Agent</h1>
+    <p class="subtitle">Интеллектуальный помощник для путешествий от Green Brain</p>
     <div class="tabs">
-        <button class="tab active" id="tabVoice">🎤 Голос</button>
-        <button class="tab" id="tabText">💬 Текст</button>
+        <button class="tab active" id="tabText">💬 Текст</button>
+        <button class="tab" id="tabVoice">🎤 Голос</button>
+    </div>
+    
+    <div id="textChat" class="chat-container active">
+        <div id="chatMessages"></div>
+        <div class="input-group">
+            <input type="text" id="chatInput" placeholder="Спросите о билетах, отелях или маршрутах..." autocomplete="off">
+            <button id="sendBtn" disabled>Отправить</button>
+        </div>
     </div>
 
-    <div id="voiceChat" class="chat-container active">
+    <div id="voiceChat" class="chat-container">
         <button id="voiceButton">🎤 Нажми и говори</button>
         <div class="status" id="voiceStatus">Подключение...</div>
         <div class="info" id="voiceInfo"></div>
-    </div>
-
-    <div id="textChat" class="chat-container">
-        <div id="chatMessages"></div>
-        <div class="input-group">
-            <input type="text" id="chatInput" placeholder="Напиши сообщение...">
-            <button id="sendBtn">Отправить</button>
-        </div>
     </div>
 </div>
 
@@ -99,15 +113,22 @@ function switchTab(tab) {
 
 // ========== текстовый чат ==========
 function connectTextWs() {
-    textWs = new WebSocket(`ws://${location.host}/ws`);
-    textWs.onopen = () => console.log('[WS] text connected');
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    textWs = new WebSocket(`${protocol}//${location.host}/ws`);
+    textWs.onopen = () => {
+        console.log('[WS] text connected');
+        document.getElementById('sendBtn').disabled = false;
+    };
     textWs.onmessage = (e) => {
         const d = JSON.parse(e.data);
         if (d.type === 'text') addMessage(d.message, 'agent');
-        else if (d.type === 'cleared') addMessage('История очищена', 'system');
+        else if (d.type === 'cleared') { addMessage('История очищена', 'system'); document.getElementById('chatMessages').innerHTML = ''; }
         else if (d.type === 'error') addMessage('Ошибка: ' + d.message, 'system');
     };
-    textWs.onclose = () => setTimeout(connectTextWs, 3000);
+    textWs.onclose = () => {
+        document.getElementById('sendBtn').disabled = true;
+        setTimeout(connectTextWs, 3000);
+    };
     textWs.onerror = (e) => console.error('[WS] text error', e);
 }
 
@@ -134,9 +155,19 @@ document.getElementById('chatInput').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendTextMessage();
 });
 
+// Очистка истории
+document.getElementById('clearBtn').onclick = () => {
+    if (textWs && textWs.readyState === WebSocket.OPEN) {
+        textWs.send(JSON.stringify({ type: 'clear' }));
+    }
+    document.getElementById('chatMessages').innerHTML = '';
+    addMessage('История чата очищена', 'system');
+};
+
 // ========== голосовой WebSocket ==========
 function connectVoiceWs() {
-    voiceWs = new WebSocket(`ws://${location.host}/ws/voice`);
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    voiceWs = new WebSocket(`${protocol}//${location.host}/ws/voice`);
     voiceWs.onopen  = () => {
         console.log('[WS] voice connected');
         setStatus('Готов к записи. Нажми и держи кнопку.');
@@ -156,7 +187,6 @@ function connectVoiceWs() {
         else if (d.type === 'audio_delta')  playAudioChunk(d.data);
         else if (d.type === 'tool_call')    setStatus('🔧 Ищу: ' + (d.name || ''));
         else if (d.type === 'speech_started') {
-            // Прерываем воспроизведение старого ответа
             nextStart = 0;
             setStatus('Слушаю...');
         }
@@ -187,7 +217,6 @@ function resample(f32, fromRate, toRate) {
 function b64pcm16(pcm16) {
     const bytes = new Uint8Array(pcm16.buffer);
     let bin = '';
-    // chunks по 0x8000 — String.fromCharCode не справляется с большими массивами
     for (let i = 0; i < bytes.length; i += 0x8000) {
         bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
     }
@@ -201,13 +230,9 @@ async function diagnoseMic(err) {
         const mics = devs.filter(d => d.kind === 'audioinput');
         console.log('Микрофоны в системе:', mics);
         if (mics.length === 0) {
-            msg = '❌ В системе НЕ найдено ни одного микрофона. ' +
-                  'Проверь: Параметры Windows → Конфиденциальность → Микрофон (включи доступ), ' +
-                  'Панель управления → Звук → Запись (устройство по умолчанию).';
+            msg = '❌ В системе НЕ найдено ни одного микрофона. Проверь настройки доступа.';
         } else {
-            msg = `⚠️ Микрофон найден (${mics.length}), но доступ запрещён. ` +
-                  'Chrome: значок ⓘ у адреса → Настройки сайта → Микрофон → Разрешить. ' +
-                  `(${err.name})`;
+            msg = `⚠️ Микрофон найден (${mics.length}), но доступ запрещён. Разрешите доступ в браузере.`;
         }
     } catch (e2) { /* ignore */ }
     setStatus(msg);
@@ -221,7 +246,6 @@ async function startRecording() {
         return;
     }
     try {
-        // Минимальные constraints — никаких sampleRate, чтобы не ловить NotFoundError
         mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
         await diagnoseMic(err);
@@ -236,7 +260,7 @@ async function startRecording() {
         srcNode  = capCtx.createMediaStreamSource(mediaStream);
         procNode = capCtx.createScriptProcessor(4096, 1, 1);
         muteGain = capCtx.createGain();
-        muteGain.gain.value = 0; // чтобы не было самовозбуждения через колонки
+        muteGain.gain.value = 0;
 
         procNode.onaudioprocess = (e) => {
             if (!recording) return;
