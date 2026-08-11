@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutu Travel Agent</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .container {
+        background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        width: 100%; max-width: 800px; padding: 30px;
+    }
+    h1 { color: #333; margin-bottom: 20px; text-align: center; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab {
+        flex: 1; padding: 12px; border: 2px solid #667eea; background: white;
+        border-radius: 10px; cursor: pointer; font-size: 16px; transition: all 0.3s;
+    }
+    .tab.active { background: #667eea; color: white; }
+    .chat-container { display: none; }
+    .chat-container.active { display: block; }
+    #chatMessages {
+        height: 400px; overflow-y: auto; border: 2px solid #e0e0e0; border-radius: 10px;
+        padding: 15px; margin-bottom: 15px; background: #f9f9f9;
+    }
+    .message { margin-bottom: 10px; padding: 10px 15px; border-radius: 15px; max-width: 80%; white-space: pre-wrap; }
+    .user { background: #667eea; color: white; margin-left: auto; }
+    .agent { background: #e0e0e0; color: #333; }
+    .system { background: #fff3cd; color: #856404; font-style: italic; font-size: 14px; }
+    .input-group { display: flex; gap: 10px; }
+    #chatInput {
+        flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px;
+    }
+    button {
+        padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 10px;
+        cursor: pointer; font-size: 16px; transition: background 0.3s;
+    }
+    button:hover { background: #5568d3; }
+    #voiceButton { width: 100%; padding: 20px; font-size: 18px; background: #4CAF50; }
+    #voiceButton.recording { background: #f44336; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100% {opacity:1;} 50% {opacity:0.7;} }
+    .status { text-align: center; margin-top: 10px; color: #666; font-size: 14px; min-height: 20px; }
+    .info { font-size: 12px; color: #999; text-align: center; margin-top: 5px; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>🚆 Tutu Travel Agent</h1>
+    <div class="tabs">
+        <button class="tab active" id="tabVoice">🎤 Голос</button>
+        <button class="tab" id="tabText">💬 Текст</button>
+    </div>
+
+    <div id="voiceChat" class="chat-container active">
+        <button id="voiceButton">🎤 Нажми и говори</button>
+        <div class="status" id="voiceStatus">Подключение...</div>
+        <div class="info" id="voiceInfo"></div>
+    </div>
+
+    <div id="textChat" class="chat-container">
+        <div id="chatMessages"></div>
+        <div class="input-group">
+            <input type="text" id="chatInput" placeholder="Напиши сообщение...">
+            <button id="sendBtn">Отправить</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let textWs = null, voiceWs = null;
+
+// --- захват микрофона ---
+let mediaStream = null, capCtx = null, srcNode = null, procNode = null, muteGain = null;
+let recording = false;
+
+// --- воспроизведение ---
+let playCtx = null, nextStart = 0;
+
+const voiceButton = document.getElementById('voiceButton');
+const voiceStatus = document.getElementById('voiceStatus');
+const voiceInfo = document.getElementById('voiceInfo');
+const setStatus = (t) => { voiceStatus.textContent = t; };
+const setInfo = (t) => { voiceInfo.textContent = t; };
+
+// ========== вкладки ==========
+document.getElementById('tabVoice').onclick = () => switchTab('voice');
+document.getElementById('tabText').onclick  = () => switchTab('text');
+function switchTab(tab) {
+    document.getElementById('tabVoice').classList.toggle('active', tab === 'voice');
+    document.getElementById('tabText').classList.toggle('active', tab === 'text');
+    document.getElementById('voiceChat').classList.toggle('active', tab === 'voice');
+    document.getElementById('textChat').classList.toggle('active', tab === 'text');
+}
+
+// ========== текстовый чат ==========
+function connectTextWs() {
+    textWs = new WebSocket(`ws://${location.host}/ws`);
+    textWs.onopen = () => console.log('[WS] text connected');
+    textWs.onmessage = (e) => {
+        const d = JSON.parse(e.data);
+        if (d.type === 'text') addMessage(d.message, 'agent');
+        else if (d.type === 'cleared') addMessage('История очищена', 'system');
+        else if (d.type === 'error') addMessage('Ошибка: ' + d.message, 'system');
+    };
+    textWs.onclose = () => setTimeout(connectTextWs, 3000);
+    textWs.onerror = (e) => console.error('[WS] text error', e);
+}
+
+function sendTextMessage() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg || !textWs || textWs.readyState !== WebSocket.OPEN) return;
+    addMessage(msg, 'user');
+    input.value = '';
+    textWs.send(JSON.stringify({ type: 'text', message: msg }));
+}
+
+function addMessage(text, sender) {
+    const box = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+    div.className = 'message ' + sender;
+    div.textContent = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+document.getElementById('sendBtn').onclick = sendTextMessage;
+document.getElementById('chatInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendTextMessage();
+});
+
+// ========== голосовой WebSocket ==========
+function connectVoiceWs() {
+    voiceWs = new WebSocket(`ws://${location.host}/ws/voice`);
+    voiceWs.onopen  = () => {
+        console.log('[WS] voice connected');
+        setStatus('Готов к записи. Нажми и держи кнопку.');
+    };
+    voiceWs.onclose = () => {
+        console.log('[WS] voice disconnected');
+        setStatus('Переподключение...');
+        setTimeout(connectVoiceWs, 3000);
+    };
+    voiceWs.onerror = (e) => console.error('[WS] voice error', e);
+    voiceWs.onmessage = (e) => {
+        const d = JSON.parse(e.data);
+        console.log('[WS] voice <-', d);
+        if (d.type === 'voice_ready')       setStatus('Готов! Нажми и держи кнопку.');
+        else if (d.type === 'user_text')    setStatus('Вы сказали: ' + d.text);
+        else if (d.type === 'text_delta')   setStatus('…' + d.text);
+        else if (d.type === 'audio_delta')  playAudioChunk(d.data);
+        else if (d.type === 'tool_call')    setStatus('🔧 Ищу: ' + (d.name || ''));
+        else if (d.type === 'speech_started') {
+            // Прерываем воспроизведение старого ответа
+            nextStart = 0;
+            setStatus('Слушаю...');
+        }
+        else if (d.type === 'response_done') setStatus('Готово. Нажми и говори ещё.');
+        else if (d.type === 'error')         setStatus('Ошибка: ' + d.message);
+    };
+}
+
+// ========== PCM16 захват (44.1 кГц, как в эталоне SDK) ==========
+const TARGET_SAMPLE_RATE = 44100;
+
+function resample(f32, fromRate, toRate) {
+    if (fromRate === toRate) return f32;
+    const ratio = fromRate / toRate;
+    const len = Math.max(1, Math.round(f32.length / ratio));
+    const out = new Float32Array(len);
+    for (let i = 0; i < len; i++) {
+        const pos = i * ratio;
+        const idx = Math.floor(pos);
+        const frac = pos - idx;
+        const a = f32[idx] || 0;
+        const b = f32[Math.min(idx + 1, f32.length - 1)] || 0;
+        out[i] = a + (b - a) * frac;
+    }
+    return out;
+}
+
+function b64pcm16(pcm16) {
+    const bytes = new Uint8Array(pcm16.buffer);
+    let bin = '';
+    // chunks по 0x8000 — String.fromCharCode не справляется с большими массивами
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+        bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(bin);
+}
+
+async function diagnoseMic(err) {
+    let msg = `Ошибка микрофона: ${err.name}: ${err.message}`;
+    try {
+        const devs = await navigator.mediaDevices.enumerateDevices();
+        const mics = devs.filter(d => d.kind === 'audioinput');
+        console.log('Микрофоны в системе:', mics);
+        if (mics.length === 0) {
+            msg = '❌ В системе НЕ найдено ни одного микрофона. ' +
+                  'Проверь: Параметры Windows → Конфиденциальность → Микрофон (включи доступ), ' +
+                  'Панель управления → Звук → Запись (устройство по умолчанию).';
+        } else {
+            msg = `⚠️ Микрофон найден (${mics.length}), но доступ запрещён. ` +
+                  'Chrome: значок ⓘ у адреса → Настройки сайта → Микрофон → Разрешить. ' +
+                  `(${err.name})`;
+        }
+    } catch (e2) { /* ignore */ }
+    setStatus(msg);
+    console.error(err);
+}
+
+async function startRecording() {
+    if (recording) return;
+    if (!voiceWs || voiceWs.readyState !== WebSocket.OPEN) {
+        setStatus('Сервер ещё не подключился, подожди...');
+        return;
+    }
+    try {
+        // Минимальные constraints — никаких sampleRate, чтобы не ловить NotFoundError
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+        await diagnoseMic(err);
+        return;
+    }
+    try {
+        capCtx = new (window.AudioContext || window.webkitAudioContext)();
+        await capCtx.resume();
+        const browserRate = capCtx.sampleRate;
+        setInfo(`Микрофон: ${browserRate} Гц → ресемплинг в ${TARGET_SAMPLE_RATE} Гц`);
+
+        srcNode  = capCtx.createMediaStreamSource(mediaStream);
+        procNode = capCtx.createScriptProcessor(4096, 1, 1);
+        muteGain = capCtx.createGain();
+        muteGain.gain.value = 0; // чтобы не было самовозбуждения через колонки
+
+        procNode.onaudioprocess = (e) => {
+            if (!recording) return;
+            const f32 = resample(e.inputBuffer.getChannelData(0), browserRate, TARGET_SAMPLE_RATE);
+            const pcm16 = new Int16Array(f32.length);
+            for (let i = 0; i < f32.length; i++) {
+                const s = Math.max(-1, Math.min(1, f32[i]));
+                pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+            voiceWs.send(JSON.stringify({
+                type: 'audio',
+                data: b64pcm16(pcm16),
+                sample_rate: browserRate,
+            }));
+        };
+        srcNode.connect(procNode);
+        procNode.connect(muteGain);
+        muteGain.connect(capCtx.destination);
+
+        recording = true;
+        nextStart = 0;
+        voiceButton.classList.add('recording');
+        voiceButton.textContent = '🔴 Говорю... (отпусти кнопку)';
+        setStatus('Записываю...');
+    } catch (err) {
+        setStatus('Ошибка аудио: ' + err.message);
+        console.error(err);
+    }
+}
+
+function stopRecording() {
+    if (!recording) return;
+    recording = false;
+    try { if (procNode) { procNode.onaudioprocess = null; procNode.disconnect(); } } catch (e) {}
+    try { if (srcNode) srcNode.disconnect(); } catch (e) {}
+    try { if (muteGain) muteGain.disconnect(); } catch (e) {}
+    try { if (capCtx) capCtx.close(); } catch (e) {}
+    if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+    capCtx = srcNode = procNode = muteGain = mediaStream = null;
+
+    if (voiceWs && voiceWs.readyState === WebSocket.OPEN) {
+        voiceWs.send(JSON.stringify({ type: 'audio_end' }));
+    }
+    voiceButton.classList.remove('recording');
+    voiceButton.textContent = '🎤 Нажми и говори';
+    setStatus('Обрабатываю...');
+    setInfo('');
+}
+
+// ========== воспроизведение PCM16 44.1 кГц без наложений ==========
+function playAudioChunk(b64) {
+    try {
+        if (!playCtx) playCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const buf = playCtx.createBuffer(1, Math.floor(bytes.length / 2), TARGET_SAMPLE_RATE);
+        const ch = buf.getChannelData(0);
+        for (let i = 0; i + 1 < bytes.length; i += 2) {
+            ch[i >> 1] = ((bytes[i] | (bytes[i + 1] << 8)) << 16 >> 16) / 32768;
+        }
+        const src = playCtx.createBufferSource();
+        src.buffer = buf;
+        src.connect(playCtx.destination);
+        const t = Math.max(playCtx.currentTime + 0.01, nextStart);
+        src.start(t);
+        nextStart = t + buf.duration;
+    } catch (e) { console.error('playback error', e); }
+}
+
+// ========== push-to-talk ==========
+voiceButton.addEventListener('mousedown',  startRecording);
+voiceButton.addEventListener('mouseup',    stopRecording);
+voiceButton.addEventListener('mouseleave', stopRecording);
+voiceButton.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
+voiceButton.addEventListener('touchend',   stopRecording);
+
+// ========== init ==========
+connectTextWs();
+connectVoiceWs();
+</script>
+</body>
+</html>

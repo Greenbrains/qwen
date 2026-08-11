@@ -1,0 +1,9 @@
+# очистка каталога __pycache__
+
+Get-ChildItem -Path . -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
+
+# порстроение дерева проекта
+tree /F /A > TREE_v3.3.txt
+
+for /d /r %d in (__pycache__) do @if exist "%d" rd /s /q "%d" & tree /F /A > TREE_v3.3.txt
+

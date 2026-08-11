@@ -1,0 +1,11 @@
+2026-08-06 15:11:34 | DEBUG    | httpx | load_ssl_context verify=True cert=None trust_env=True http2=False
+2026-08-06 15:11:34 | DEBUG    | httpx | load_verify_locations cafile='C:\\Users\\igor.sobolev\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\certifi\\cacert.pem'
+2026-08-06 15:11:34 | INFO     | smart_agent | Инициализация SmartAgent...
+2026-08-06 15:11:34 | ERROR    | mainlite | Ошибка в mainlite
+Traceback (most recent call last):
+  File "c:\Users\igor.sobolev\Programms\travel_assistant2026\mainlite.py", line 49, in main
+    await agent.initialize()
+  File "c:\Users\igor.sobolev\Programms\travel_assistant2026\smart_agent.py", line 42, in initialize
+    await self.mcp_client.initialize()
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+TypeError: AsyncMCPClient.initialize() missing 1 required positional argument: 'session'
