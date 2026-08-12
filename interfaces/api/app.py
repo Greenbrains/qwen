@@ -6,6 +6,11 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
+from config import get_all_destinations
+
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
@@ -16,7 +21,7 @@ from interfaces.dependencies import app_dependencies
 
 logger = logging.getLogger("travel_agent.api")
 
-# ❗ Было Path(file)
+#  Path(file)
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 @asynccontextmanager
@@ -53,13 +58,32 @@ app.add_middleware(
 app.include_router(api_router)
 app.include_router(ws_router)
 
-@app.get("/")
-async def index():
-    """Веб-интерфейс агента."""
-    index_file = WEB_DIR / "index.html"
-    if not index_file.exists():
-        return HTMLResponse(
-            f"<h1>index.html не найден</h1><p>Ищу здесь: {index_file}</p>",
-            status_code=404
-        )
-    return FileResponse(index_file)
+# ================= Green Brain web UI =================
+
+@app.get("/", response_class=HTMLResponse)
+async def gb_landing():
+    return FileResponse(WEB_DIR / "index.html")
+
+@app.get("/chat.html", response_class=HTMLResponse)
+async def gb_chat():
+    return FileResponse(WEB_DIR / "chat.html")
+
+@app.get("/api/destinations")
+async def gb_destinations():
+    return {"destinations": [
+        {"destination_id": d.destination_id, "name": d.name,
+         "emoji": d.emoji, "description": d.description}
+        for d in get_all_destinations()
+    ]}
+
+@app.get("/api/destinations/{dest_id}")
+async def gb_destination(dest_id: str):
+    for d in get_all_destinations():
+        if d.destination_id == dest_id:
+            return {"destination_id": d.destination_id, "name": d.name,
+                    "emoji": d.emoji, "description": d.description,
+                    "full_description": getattr(d, "full_description", d.description)}
+    return JSONResponse({"error": "destination not found"}, status_code=404)
+
+app.mount("/static", StaticFiles(directory=str(WEB_DIR / "static")), name="static")
+# ======================================================

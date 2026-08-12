@@ -1,0 +1,199 @@
+# Конфигурация направлений: маппинг направление → разрешённые скиллы и знания
+# Используется для фильтрации инструментов при инициализации сессии агента.
+#
+# Структура:
+#   destination_id: уникальный идентификатор направления (slug)
+#   name: отображаемое название
+#   emoji: эмодзи для карточки
+#   description: краткое описание для лендинга
+#   full_description: подробное описание (климат, виза, лучший сезон)
+#   skills: список разрешённых скиллов (rail, avia, hotels, bus, etrain, multitransport, consultant)
+#   knowledge_files: список файлов из knowledge_base/ для контекста
+#
+# Если направление не найдено в конфиге — используется полный набор скиллов (fallback).
+
+destinations:
+  - destination_id: sri_lanka
+    name: Шри-Ланка
+    emoji: 🇱🇰
+    description: Тропический рай с пляжами, чайными плантациями и древними храмами
+    full_description: |
+      Шри-Ланка — островное государство в Индийском океане.
+
+      Климат: тропический, сухой сезон (декабрь-март) идеален для посещения.
+      Виза: электронная ETA для граждан РФ, оформляется онлайн за 1-3 дня.
+      Лучший сезон: ноябрь-апрель для западного и южного побережий.
+
+      Особенности: левостороннее движение, местная валюта — рупия.
+    skills:
+      - avia
+      - hotels
+      - bus
+      - multitransport
+      - consultant
+    knowledge_files:
+      - travel_hacks.md
+      - faq_tutu.md
+
+  - destination_id: maldives
+    name: Мальдивы
+    emoji: 🏝️
+    description: Райские острова с кристально чистой водой и роскошными курортами
+    full_description: |
+      Мальдивы — архипелаг в Индийском океане, известный своими атоллами.
+
+      Климат: тропический муссонный, сухой сезон ноябрь-апрель.
+      Виза: не требуется для граждан РФ (до 90 дней).
+      Лучший сезон: ноябрь-апрель (сухой северо-восточный муссон).
+
+      Особенности: только авиасообщение, водные трансферы между островами.
+    skills:
+      - avia
+      - hotels
+      - multitransport
+      - consultant
+    knowledge_files:
+      - travel_hacks.md
+      - faq_tutu.md
+
+  - destination_id: switzerland
+    name: Швейцария
+    emoji: 🏔️
+    description: Величественные Альпы, озера и безупречный сервис
+    full_description: |
+      Швейцария — страна в сердце Европы, известная горами и стабильностью.
+
+      Климат: умеренный, альпийский, лыжный сезон декабрь-март.
+      Виза: шенгенская виза требуется для граждан РФ.
+      Лучший сезон: июнь-сентябрь для пеших прогулок, декабрь-март для лыж.
+
+      Особенности: развитая сеть железных дорог, дорогие отели.
+    skills:
+      - avia
+      - rail
+      - hotels
+      - bus
+      - etrain
+      - multitransport
+      - consultant
+    knowledge_files:
+      - travel_hacks.md
+      - faq_tutu.md
+
+  - destination_id: japan
+    name: Япония
+    emoji: ⛩️
+    description: Уникальная культура, технологии и древние традиции
+    full_description: |
+      Япония — островное государство в Восточной Азии.
+
+      Климат: от субтропического до умеренного.
+      Виза: электронная виза для граждан РФ (оформляется онлайн).
+      Лучший сезон: март-май (сакура), октябрь-ноябрь (красные клены).
+
+      Особенности: развитая сеть скоростных поездов синкансэн.
+    skills:
+      - avia
+      - rail
+      - hotels
+      - bus
+      - etrain
+      - multitransport
+      - consultant
+    knowledge_files:
+      - travel_hacks.md
+      - faq_tutu.md
+
+  - destination_id: italy
+    name: Италия
+    emoji: 🍕
+    description: Искусство, история, кулинария и средиземноморский климат
+    full_description: |
+      Италия — страна в Южной Европе с богатейшим наследием.
+
+      Климат: средиземноморский, жаркое лето, мягкая зима.
+      Виза: шенгенская виза требуется для граждан РФ.
+      Лучший сезон: апрель-июнь, сентябрь-октябрь.
+
+      Особенности: развитое ж/д сообщение между городами.
+    skills:
+      - avia
+      - rail
+      - hotels
+      - bus
+      - etrain
+      - multitransport
+      - consultant
+    knowledge_files:
+      - travel_hacks.md
+      - faq_tutu.md
+
+  - destination_id: iceland
+    name: Исландия
+    emoji: 🌌
+    description: Северное сияние, гейзеры, вулканы и ледники
+    full_description: |
+      Исландия — островное государство в Северной Атлантике.
+
+      Климат: субарктический, мягкая зима благодаря Гольфстриму.
+      Виза: шенгенская виза требуется для граждан РФ.
+      Лучший сезон: июнь-август (полуночное солнце), сентябрь-март (северное сияние).
+
+      Особенности: аренда авто обязательна, ж/д нет.
+    skills:
+      - avia
+      - hotels
+      - bus
+      - multitransport
+      - consultant
+    knowledge_files:
+      - travel_hacks.md
+      - faq_tutu.md
+
+  - destination_id: bali
+    name: Бали
+    emoji: 🌴
+    description: Тропический рай, храмы, рисовые террасы и серфинг
+    full_description: |
+      Бали — остров в Индонезии, популярное туристическое направление.
+
+      Климат: тропический муссонный.
+      Виза: виза по прибытии для граждан РФ (30 дней).
+      Лучший сезон: апрель-октябрь (сухой сезон).
+
+      Особенности: только авиасообщение, местные трансферы на авто/байках.
+    skills:
+      - avia
+      - hotels
+      - bus
+      - multitransport
+      - consultant
+    knowledge_files:
+      - travel_hacks.md
+      - faq_tutu.md
+
+# Маппинг skill_id → названия инструментов в реестре
+skill_tools_map:
+  avia:
+    - search_avia
+    - get_avia_instructions
+  rail:
+    - search_rail
+    - get_rail_instructions
+    - get_rail_seatmap
+  hotels:
+    - search_hotels
+    - get_hotels_instructions
+  bus:
+    - search_bus
+    - get_bus_instructions
+  etrain:
+    - search_etrain
+    - get_etrain_instructions
+  multitransport:
+    - search_multitransport
+    - get_multitransport_instructions
+  consultant:
+    - create_checkout_link
+    - fetch_resource
+    - get_offer_details

@@ -64,18 +64,14 @@ def resample_pcm16(pcm16_bytes: bytes, from_rate: int, to_rate: int) -> bytes:
 # ----------------------------------------------------------------------
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket эндпоинт для текстового общения с агентом."""
+    """Текстовый чат: идёт через оркестратор, как REST /chat и CLI."""
     await websocket.accept()
     deps = get_dependencies()
-    agent = getattr(deps, "agent", None)
-
-    if agent is None:
-        await websocket.send_json({"type": "error", "message": "Агент не инициализирован"})
+    if deps.orchestrator is None:
+        await websocket.send_json({"type": "error", "message": "Оркестратор не инициализирован"})
         await websocket.close()
         return
-
     session = deps.session_store.get_or_create()
-
     try:
         while True:
             data = await websocket.receive_text()
@@ -83,23 +79,22 @@ async def websocket_endpoint(websocket: WebSocket):
                 message = json.loads(data)
             except json.JSONDecodeError:
                 message = {"type": "text", "message": data}
-
             msg_type = message.get("type", "text")
-
             if msg_type == "text":
                 user_text = message.get("message", "")
-                final_text, new_history, tool_calls = await agent.run_async(
-                    user_input=user_text,
-                    history=session.history,
+                last_agent = getattr(session, "last_agent", None)
+                final_text, new_history, tool_calls, agent_name = await deps.orchestrator.run(
+                    user_text, session.history, last_agent
                 )
                 session.messages = new_history
+                session.last_agent = agent_name
                 session.record_tool_calls(tool_calls)
                 deps.session_store.save(session)
-
                 await websocket.send_json({
                     "type": "text",
                     "message": final_text,
                     "session_id": session.session_id,
+                    "agent_name": agent_name,
                     "tool_calls": len(tool_calls),
                 })
             elif msg_type == "clear":
@@ -123,7 +118,6 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.close()
         except Exception:
             pass
-
 
 # ----------------------------------------------------------------------
 # /ws/voice — голосовой режим (браузер <-> Yandex Realtime API)
