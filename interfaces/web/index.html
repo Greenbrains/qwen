@@ -1,8 +1,112 @@
-$root = (Get-Location).Path
-function Paste-To($rel) {
-  [IO.File]::WriteAllText((Join-Path $root $rel), (Get-Clipboard -Raw), [Text.UTF8Encoding]::new($false))
-  "saved: $rel"
-}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Green Brain - Открой зеленый мир</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="logo"><span class="logo-icon">✈️</span><span class="logo-text">Green Brain</span></a>
+      <ul class="nav-links">
+        <li><a href="#home">Главная</a></li>
+        <li><a href="#destinations">Направления</a></li>
+        <li><a href="#about">О нас</a></li>
+        <li><a href="#contact">Контакты</a></li>
+      </ul>
+    </div>
+  </nav>
 
-Paste-To interfaces\web\index.html
-Select-String -Path interfaces\web\index.html -Pattern 'destinationsGrid'   # контроль: должна найтись
+  <section class="hero" id="home">
+    <div class="floating-icons">
+      <span class="float-icon">🌍</span><span class="float-icon">✈️</span><span class="float-icon">🗺️</span><span class="float-icon">🌴</span><span class="float-icon">🏔️</span>
+    </div>
+    <div class="hero-content">
+      <h1 class="hero-title"><span class="gradient-text">Открой для себя</span><br><span class="white-text">мир путешествий</span></h1>
+      <p class="hero-subtitle">Исследуйте самые красивые уголки планеты с нашими эксклюзивными турами</p>
+      <div class="hero-buttons">
+        <a href="#destinations" class="btn btn-primary btn-large">Начать путешествие</a>
+        <a href="#about" class="btn btn-secondary btn-large">Узнать больше</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="destinations" id="destinations">
+    <div class="container">
+      <h2 class="section-title gradient-text">Популярные направления</h2>
+      <p class="section-subtitle">Выберите идеальное место для вашего отпуска</p>
+      <div class="destinations-grid" id="destinationsGrid"></div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item"><span class="stat-number" data-target="15000">0</span><span class="stat-label">Довольных клиентов</span></div>
+        <div class="stat-item"><span class="stat-number" data-target="50">0</span><span class="stat-label">Стран мира</span></div>
+        <div class="stat-item"><span class="stat-number" data-target="15">0</span><span class="stat-label">Лет опыта</span></div>
+        <div class="stat-item"><span class="stat-number" data-target="1200">0</span><span class="stat-label">Туров в год</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <div class="container">
+      <h2 class="section-title gradient-text">Почему выбирают нас?</h2>
+      <div class="about-content">
+        <div>
+          <p class="about-description">Мы создаём незабываемые путешествия уже более 15 лет. Наша команда профессионалов позаботится о каждой детали вашего отдыха.</p>
+          <div class="features">
+            <div class="feature"><span class="feature-icon">🎯</span>Индивидуальный подход</div>
+            <div class="feature"><span class="feature-icon">💎</span>Премиум сервис</div>
+            <div class="feature"><span class="feature-icon">🛡️</span>Гарантия качества</div>
+            <div class="feature"><span class="feature-icon">💰</span>Лучшие цены</div>
+          </div>
+        </div>
+        <div class="about-visual">
+          <div class="visual-card"><span class="visual-emoji">🌟</span><p>Green Brain</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hippo-section">
+    <div class="container hippo-container">
+      <div class="hippo-card">
+        <img src="/static/images/backoffice.png" alt="Наш талисман" class="hippo-image">
+        <p class="hippo-caption">🦴 Всегда готов помочь с планированием вашего отпуска! 🌴</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="container">
+      <h2 class="section-title gradient-text">Готовы к путешествию?</h2>
+      <p class="section-subtitle">Оставьте заявку и мы свяжемся с вами</p>
+      <form class="contact-form">
+        <div class="form-group"><input type="text" placeholder="Ваше имя" required></div>
+        <div class="form-group"><input type="email" placeholder="Email" required></div>
+        <button type="submit" class="btn btn-primary">Отправить заявку 🚀</button>
+      </form>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="logo"><span class="logo-icon">✈️</span><span class="logo-text">Green Brain</span></div>
+      <p class="footer-text">© 2025 Green Brain. Все права защищены.</p>
+      <div class="social-links">
+        <a href="#" class="social-link">📱</a><a href="#" class="social-link">📧</a><a href="#" class="social-link">💬</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/js/main.js"></script>
+  <script src="/static/js/landing.js"></script>
+</body>
+</html>

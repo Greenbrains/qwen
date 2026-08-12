@@ -2,7 +2,7 @@
 /* Чат Green Brain: текст + голос. Эндпоинты правь ТОЛЬКО в CONFIG. */
 const wsBase = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
 const CONFIG = {
-  textWs:   d => `${wsBase}/ws/text`  + (d ? `?destination=${encodeURIComponent(d)}` : ''),
+  textWs:   d => `${wsBase}/ws` + (d ? `?destination=${encodeURIComponent(d)}` : ''),
   voiceWs:  d => `${wsBase}/ws/voice` + (d ? `?destination=${encodeURIComponent(d)}` : ''),
   destInfo: d => `/api/destinations/${encodeURIComponent(d)}`,
 };
