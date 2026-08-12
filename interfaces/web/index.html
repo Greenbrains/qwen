@@ -1,60 +1,8 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Green Brain Travel Agent</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/greenbrain.css">
-</head>
-<body>
-  <nav class="navbar">
-    <div class="nav-container">
-      <a class="logo" href="/"><span class="logo-icon">✈️</span><span class="logo-text">Green Brain</span></a>
-      <div class="nav-links">
-        <a href="/">Главная</a>
-        <a href="/#destinations">Направления</a>
-        <a href="/#about">О нас</a>
-        <a href="/#contact">Контакты</a>
-      </div>
-    </div>
-  </nav>
+$root = (Get-Location).Path
+function Paste-To($rel) {
+  [IO.File]::WriteAllText((Join-Path $root $rel), (Get-Clipboard -Raw), [Text.UTF8Encoding]::new($false))
+  "saved: $rel"
+}
 
-  <main class="chat-wrap">
-    <section class="chat-card">
-      <div class="chat-head">
-        <div class="head-left">
-          <div class="chat-title">🚆 Tutu Travel Agent</div>
-          <div class="status" id="connStatus">Подключение...</div>
-        </div>
-        <span class="dest-badge hidden" id="destBadge">🌴 <span id="destName"></span></span>
-        <div class="head-actions">
-          <a class="btn btn-ghost" href="/">← Назад</a>
-          <button class="btn btn-danger" id="clearBtn">🗑️ Очистить</button>
-        </div>
-      </div>
-
-      <div class="modes">
-        <button class="mode-btn active" id="modeText">💬 Текст</button>
-        <button class="mode-btn" id="modeVoice">🎤 Голос</button>
-      </div>
-
-      <div class="chat-log" id="chatLog"></div>
-
-      <div class="chat-input" id="textInput">
-        <input id="msgInput" placeholder="Спросите о билетах, отелях или маршрутах..." autocomplete="off">
-        <button class="btn btn-grad" id="sendBtn">Отправить</button>
-      </div>
-
-      <div class="voice-box hidden" id="voiceBox">
-        <button class="voice-btn" id="voiceBtn">🎤</button>
-        <div class="status">Нажми и говори</div>
-      </div>
-    </section>
-  </main>
-
-  <script src="/static/js/chat.js"></script>
-</body>
-</html>
+Paste-To interfaces\web\index.html
+Select-String -Path interfaces\web\index.html -Pattern 'destinationsGrid'   # контроль: должна найтись

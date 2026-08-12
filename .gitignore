@@ -328,3 +328,5 @@ build/
 
 # Original rules preserved
 *.log
+
+logs.txt
