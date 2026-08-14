@@ -1,9 +1,15 @@
-2026-08-14 16:42:54 | WARNING  | ⚠️ Модуль tools.mcp не найден. Инструменты Туту недоступны.
-2026-08-14 16:43:12 | INFO     | 
-👤 найди электричку москва калуга на завтра
-2026-08-14 16:43:12 | DEBUG    | USER MESSAGE (full):
-найди электричку москва калуга на завтра
-2026-08-14 16:43:12 | DEBUG    | SYSTEM PROMPT:
+2026-08-14 17:24:35 | INFO     | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-08-14 17:24:36 | INFO     | ✅ MCP сессия установлена (stateless)
+2026-08-14 17:24:36 | DEBUG    | MCP notifications/initialized отправлен
+2026-08-14 17:24:36 | INFO     | ✅ MCP сессия инициализирована
+2026-08-14 17:24:36 | INFO     | ✅ MCP-клиент (Туту) подключен
+2026-08-14 17:24:36 | INFO     | 📋 Получено 16 MCP-инструментов
+2026-08-14 17:24:36 | INFO     | ✅ Подключено 16 MCP-инструментов
+2026-08-14 17:25:00 | INFO     | 
+👤 найди электричку москва - калуга на завтра
+2026-08-14 17:25:00 | DEBUG    | USER MESSAGE (full):
+найди электричку москва - калуга на завтра
+2026-08-14 17:25:00 | DEBUG    | SYSTEM PROMPT:
 Ты — агент-исполнитель с доступом к Яндекс AI Studio и набору инструментов.
 
 ## Базовые возможности
@@ -67,17 +73,17 @@
 3. **Проверяй зависимости.** Убедись, что заданы переменные окружения, если навык их требует.
 4. **Соблюдай безопасность.** Никогда не выводи в чат значения секретных ключей или токенов.
 
-2026-08-14 16:43:12 | INFO     | 🤖 Агент думает...
-2026-08-14 16:43:12 | INFO     |   [1/10]
-2026-08-14 16:43:13 | DEBUG    |    finish_reason: tool_calls
-2026-08-14 16:43:13 | DEBUG    | TOKEN USAGE: prompt=2510 completion=224 total=2734
-2026-08-14 16:43:13 | DEBUG    | MODEL REASONING (full):
+2026-08-14 17:25:00 | INFO     | 🤖 Агент думает...
+2026-08-14 17:25:00 | INFO     |   [1/10]
+2026-08-14 17:25:02 | DEBUG    |    finish_reason: tool_calls
+2026-08-14 17:25:02 | DEBUG    | TOKEN USAGE: prompt=2511 completion=242 total=2753
+2026-08-14 17:25:02 | DEBUG    | MODEL REASONING (full):
 
 
 
-2026-08-14 16:43:13 | INFO     |     🔧 load_skill(skill_name='touragent')
-2026-08-14 16:43:13 | DEBUG    | TOOL CALL: name=load_skill args={"skill_name": "touragent"}
-2026-08-14 16:43:13 | DEBUG    | TOOL RESULT [load_skill] full (1981 chars):
+2026-08-14 17:25:02 | INFO     |     🔧 load_skill(skill_name='touragent')
+2026-08-14 17:25:02 | DEBUG    | TOOL CALL: name=load_skill args={"skill_name": "touragent"}
+2026-08-14 17:25:02 | DEBUG    | TOOL RESULT [load_skill] full (1981 chars):
 # Навык: Турагент (Tour Agent)
 
 ## Описание
@@ -120,128 +126,55 @@
 - Сегодняшняя дата указана в системном промпте — используй её для расчёта относительных дат ("завтра", "послезавтра").
 - Никогда не предлагай билеты на даты, которые уже прошли.
 - Коды аэропортов IATA: SVO (Шереметьево), DME (Домодедово), VKO (Внуково), AER (Сочи).
-2026-08-14 16:43:13 | INFO     |        ✓ load_skill | 1981 симв. (подробности в log.txt)
-2026-08-14 16:43:13 | INFO     |   [2/10]
-2026-08-14 16:43:14 | DEBUG    |    finish_reason: tool_calls
-2026-08-14 16:43:14 | DEBUG    | TOKEN USAGE: prompt=3205 completion=253 total=3458
-2026-08-14 16:43:14 | DEBUG    | MODEL REASONING (full):
+2026-08-14 17:25:02 | INFO     |        ✓ load_skill | 1981 симв. (подробности в log.txt)
+2026-08-14 17:25:02 | INFO     |   [2/10]
+2026-08-14 17:25:03 | DEBUG    |    finish_reason: tool_calls
+2026-08-14 17:25:03 | DEBUG    | TOKEN USAGE: prompt=3206 completion=182 total=3388
+2026-08-14 17:25:03 | DEBUG    | MODEL REASONING (full):
 
 
-Сегодня 14 августа 2026 года, значит завтра — **15 августа 2026 года**. Найду ж/д билеты из Москвы в Калугу на завтра.
+Сейчас найду ж/д билеты из Москвы в Калугу на завтра, 15 августа 2026 года.
 
 
-2026-08-14 16:43:14 | INFO     |     💭 Сегодня 14 августа 2026 года, значит завтра — **15 августа 2026 года**. Найду ж/д билеты из Москвы в Калугу на завтра.
-2026-08-14 16:43:14 | INFO     |     🔧 search_rail(departure_date='2026-08-15', to_city='Калуга', passengers...)
-2026-08-14 16:43:14 | DEBUG    | TOOL CALL: name=search_rail args={"departure_date": "2026-08-15", "to_city": "Калуга", "passengers": "1", "from_city": "Москва"}
-2026-08-14 16:43:14 | ERROR    | Инструмент 'search_rail' не найден
-2026-08-14 16:43:14 | DEBUG    | TOOL RESULT [search_rail] full (36 chars):
+2026-08-14 17:25:03 | INFO     |     💭 Сейчас найду ж/д билеты из Москвы в Калугу на завтра, 15 августа 2026 года.
+2026-08-14 17:25:03 | INFO     |     🔧 search_rail(from_city='Москва', passengers='1', to_city='Калуга', dep...)
+2026-08-14 17:25:03 | DEBUG    | TOOL CALL: name=search_rail args={"from_city": "Москва", "passengers": "1", "to_city": "Калуга", "departure_date": "2026-08-15"}
+2026-08-14 17:25:03 | ERROR    | Инструмент 'search_rail' не найден
+2026-08-14 17:25:03 | DEBUG    | TOOL RESULT [search_rail] full (36 chars):
 ❌ Инструмент 'search_rail' не найден
-2026-08-14 16:43:14 | INFO     |        ✗ search_rail | 36 симв. (подробности в log.txt)
-2026-08-14 16:43:14 | INFO     |   [3/10]
-2026-08-14 16:43:15 | DEBUG    |    finish_reason: tool_calls
-2026-08-14 16:43:15 | DEBUG    | TOKEN USAGE: prompt=3357 completion=135 total=3492
-2026-08-14 16:43:15 | DEBUG    | MODEL REASONING (full):
+2026-08-14 17:25:03 | INFO     |        ✗ search_rail | 36 симв. (подробности в log.txt)
+2026-08-14 17:25:03 | INFO     |   [3/10]
+2026-08-14 17:25:05 | DEBUG    |    finish_reason: tool_calls
+2026-08-14 17:25:05 | DEBUG    | TOKEN USAGE: prompt=3345 completion=238 total=3583
+2026-08-14 17:25:05 | DEBUG    | MODEL REASONING (full):
 
 
-Попробую мультимодальный поиск, который включает и ж/д билеты:
+Инструмент `search_rail` не найден. Попробую мультимодальный поиск, который включает ж/д билеты.
 
 
-2026-08-14 16:43:15 | INFO     |     💭 Попробую мультимодальный поиск, который включает и ж/д билеты:
-2026-08-14 16:43:15 | INFO     |     🔧 search_multitransport(to_city='Калуга', departure_date='2026-08-15', adults='1'...)
-2026-08-14 16:43:15 | DEBUG    | TOOL CALL: name=search_multitransport args={"to_city": "Калуга", "departure_date": "2026-08-15", "adults": "1", "from_city": "Москва"}
-2026-08-14 16:43:15 | ERROR    | Инструмент 'search_multitransport' не найден
-2026-08-14 16:43:15 | DEBUG    | TOOL RESULT [search_multitransport] full (46 chars):
+
+2026-08-14 17:25:05 | INFO     |     💭 Инструмент `search_rail` не найден. Попробую мультимодальный поиск, который включает ж/д билеты.
+2026-08-14 17:25:05 | INFO     |     🔧 search_multitransport(adults='1', to_city='Калуга', departure_date='2026-08-15'...)
+2026-08-14 17:25:05 | DEBUG    | TOOL CALL: name=search_multitransport args={"adults": "1", "to_city": "Калуга", "departure_date": "2026-08-15", "from_city": "Москва"}
+2026-08-14 17:25:05 | ERROR    | Инструмент 'search_multitransport' не найден
+2026-08-14 17:25:05 | DEBUG    | TOOL RESULT [search_multitransport] full (46 chars):
 ❌ Инструмент 'search_multitransport' не найден
-2026-08-14 16:43:15 | INFO     |        ✗ search_multitransport | 46 симв. (подробности в log.txt)
-2026-08-14 16:43:15 | INFO     |   [4/10]
-2026-08-14 16:43:16 | DEBUG    |    finish_reason: tool_calls
-2026-08-14 16:43:16 | DEBUG    | TOKEN USAGE: prompt=3489 completion=148 total=3637
-2026-08-14 16:43:16 | DEBUG    | MODEL REASONING (full):
+2026-08-14 17:25:05 | INFO     |        ✗ search_multitransport | 46 симв. (подробности в log.txt)
+2026-08-14 17:25:05 | INFO     |     🔧 bash_execute(command='which tuta 2>/dev/null || w...')
+2026-08-14 17:25:05 | DEBUG    | TOOL CALL: name=bash_execute args={"command": "which tuta 2>/dev/null || which tutu 2>/dev/null || echo \"no tutu cli found\""}
+2026-08-14 17:25:05 | DEBUG    | TOOL RESULT [bash_execute] full (20 chars):
+"no tutu cli found"
+
+2026-08-14 17:25:05 | INFO     |        ✓ bash_execute | 20 симв. (подробности в log.txt)
+2026-08-14 17:25:05 | INFO     |   [4/10]
+2026-08-14 17:25:06 | DEBUG    |    finish_reason: tool_calls
+2026-08-14 17:25:06 | DEBUG    | TOKEN USAGE: prompt=3552 completion=157 total=3709
+2026-08-14 17:25:06 | DEBUG    | MODEL REASONING (full):
 
 
-Инструменты поиска через MCP-сервер недоступны. Попробую найти информацию через веб-поиск.
+Инструменты поиска ж/д билетов не доступны напрямую. Поищу информацию о расписании электричек через веб-поиск.
 
 
-2026-08-14 16:43:16 | INFO     |     💭 Инструменты поиска через MCP-сервер недоступны. Попробую найти информацию через веб-поиск.
-2026-08-14 16:43:16 | INFO     |     🔧 web_search(search_context_size='high', query='электричка Москва Калу...)
-2026-08-14 16:43:16 | DEBUG    | TOOL CALL: name=web_search args={"search_context_size": "high", "query": "электричка Москва Калуга расписание 15 августа 2026"}
-2026-08-14 16:43:41 | DEBUG    | TOOL RESULT [web_search] full (2007 chars):
-Расписание электричек с **Киевского вокзала** в **Калугу-1** на 15 августа 2026 года (суббота).
-
-Всего в расписании на этот день **14 рейсов**. Время в пути варьируется от 2 часов 34 минут до 3 часов 9 минут.
-
-**Утренние и дневные поезда:**
-*   **03:42** — прибытие в 06:51 (в пути 3 ч 9 м)
-*   **05:22** — прибытие в 08:27 (в пути 3 ч 5 м)
-*   **07:45** — прибытие в 10:20 (в пути 2 ч 35 м)
-*   **09:05** — прибытие в 12:08 (в пути 3 ч 3 м)
-*   **09:39** — прибытие в 12:15 (в пути 2 ч 36 м)
-*   **10:15** — прибытие в 13:21 (в пути 3 ч 6 м)
-*   **12:55** — прибытие в 15:30 (в пути 2 ч 35 м)
-*   **14:07** — прибытие в 17:12 (в пути 3 ч 5 м)
-
-**Вечерние поезда:**
-*   **16:15** — прибытие в 18:50 (в пути 2 ч 35 м)
-*   **16:36** — прибытие в 19:40 (в пути 3 ч 4 м)
-*   **18:23** — прибытие в 21:27 (в пути 3 ч 4 м)
-*   **19:29** — прибытие в 22:03 (в пути 2 ч 34 м) — *самый быстрый поезд*
-*   **21:12** — прибытие в 00:17 (следующий день, 16.08)
-*   **22:50** — прибытие в 01:51 (следующий день, 16.08)
-
-**Общая информация:**
-*   **Отправление:** Москва, Киевский вокзал.
-*   **Прибытие:** Калуга-1.
-*   **Среднее время в пути:** около 2 ч 50 мин.
-
-*Рекомендуется уточнять наличие мест и актуальность расписания перед поездкой на официальных сайтах перевозчиков или в приложениях (Яндекс.Расписания, РЖД).*
-
-**Источники:**
-- https://ezdy.ru/raspisanie-poezdov/moskva-kievskii-vokzal--kaluga-1/elektrichki/15.08.2026/
-- https://travel.yandex.ru/trains/moscow--kaluga/
-- https://www.tutu.ru/rasp.php?st1=20000&st2=20703
-- https://www.moscowmap.ru/rail/kievsky-vokzal/raspisanie.html
-- https://vgorode.moscow/transport/elektrichki/moskva-kaluga/
-- https://www.ufs-online.ru/kupit-zhd-bilety/moskva-kievskiy/kaluga
-- https://transportspb.com/trains/moskva-kievskiy-vokzal/kaluga-1/s2000007/s2000345
-- https://napoezde.net/raspisanie-po-marshrutu/elektrichki-moskva--kaluga/
-- https://rasp.yandex.ru/all-transport/moscow-kievskaya--kaluga-1
-- https://suburban.biletyplus.ru/raspisanie/kievskij-vokzal/kaluga-1
-2026-08-14 16:43:41 | INFO     |        ✓ web_search | 2007 симв. (подробности в log.txt)
-2026-08-14 16:43:41 | INFO     |   [5/10]
-2026-08-14 16:43:43 | DEBUG    |    finish_reason: stop
-2026-08-14 16:43:43 | DEBUG    | TOKEN USAGE: prompt=4520 completion=709 total=5229
-2026-08-14 16:43:43 | DEBUG    | FINAL ANSWER (full):
-
-
-## 🚆 Электрички Москва → Калуга на 15 августа 2026 (суббота)
-
-**Отправление:** Москва, Киевский вокзал  
-**Прибытие:** Калуга-1  
-**Среднее время в пути:** ~2 ч 50 мин
-
-### Расписание на 15 августа:
-
-| Отправление | Прибытие | В пути |
-| :--- | :--- | :--- |
-| 03:42 | 06:51 | 3 ч 09 м |
-| 05:22 | 08:27 | 3 ч 05 м |
-| **07:45** | **10:20** | **2 ч 35 м** |
-| 09:05 | 12:08 | 3 ч 03 м |
-| **09:39** | **12:15** | **2 ч 36 м** |
-| 10:15 | 13:21 | 3 ч 06 м |
-| **12:55** | **15:30** | **2 ч 35 м** |
-| 14:07 | 17:12 | 3 ч 05 м |
-| **16:15** | **18:50** | **2 ч 35 м** |
-| 16:36 | 19:40 | 3 ч 04 м |
-| 18:23 | 21:27 | 3 ч 04 м |
-| **19:29** | **22:03** | **2 ч 34 м** ⚡ самый быстрый |
-| 21:12 | 00:17 (16.08) | 3 ч 05 м |
-| 22:50 | 01:51 (16.08) | 3 ч 01 м |
-
-### 💡 Рекомендации:
-- **Самые быстрые** (2 ч 34–35 м): 07:45, 09:39, 12:55, 16:15, 19:29
-- **Удобное утреннее**: 07:45 — приедете к обеду
-- **Удобное дневное**: 12:55 — приедете к 15:30
-
-> ⚠️ **Рекомендую уточнить наличие мест и актуальность расписания** перед поездкой на официальных сайтах: [Яндекс.Расписания](https://rasp.yandex.ru/), [Tutu.ru](https://www.tutu.ru/), [BiletyPlus](https://suburban.biletyplus.ru/).
-2026-08-14 16:51:04 | WARNING  | ⚠️ Модуль tools.mcp не найден. Инструменты Туту недоступны.
+2026-08-14 17:25:06 | INFO     |     💭 Инструменты поиска ж/д билетов не доступны напрямую. Поищу информацию о расписании электричек через веб-поиск.
+2026-08-14 17:25:06 | INFO     |     🔧 web_search(query='электричка Москва Калуга ра...', search_context_si...)
+2026-08-14 17:25:06 | DEBUG    | TOOL CALL: name=web_search args={"query": "электричка Москва Калуга расписание 15 августа 2026", "search_context_size": "high"}
