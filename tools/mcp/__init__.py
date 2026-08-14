@@ -3,12 +3,11 @@
 Экспортирует синхронный и асинхронный клиенты, а также модели.
 """
 
-from .client import SyncMCPClient, get_settings
+from .client import SyncMCPClient
 from .models import MCPTool, MCPRequest, MCPResponse
 
 __all__ = [
     "SyncMCPClient",
-    "get_settings",
     "MCPTool",
     "MCPRequest",
     "MCPResponse",
