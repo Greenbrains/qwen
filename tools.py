@@ -19,7 +19,7 @@ from functools import wraps
 from pathlib import Path
 from datetime import datetime
 import os
-
+import re
 
 # ============================================================
 # 1. Декоратор @tool — превращает функции в инструменты для LLM
@@ -535,7 +535,10 @@ class YandexTools:
                 for url in sources:
                     result_parts.append(f"- {url}")
             
-            return "\n".join(result_parts) if result_parts else "❌ Поиск не дал результатов"
+            cleaned = "\n".join(result_parts) if result_parts else "❌ Поиск не дал результатов"
+            # Убираем 3+ подряд идущих переноса строки, оставляя максимум 2
+            cleaned = re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+            return cleaned
         
         except Exception as e:
             return f"❌ Ошибка поиска: {str(e)}"
