@@ -1,51 +1,15 @@
 """
-__init__.py для пакета tools.mcp
-
-Экспортирует основные классы и функции для работы с MCP-сервером Туту.
+Пакет MCP-клиентов для ft_assistant2026.
+Экспортирует синхронный и асинхронный клиенты, а также модели.
 """
 
-from .models import (
-    MCPRequest,
-    MCPError,
-    MCPResponse,
-    MCPTool,
-    MCPToolResult,
-    build_initialize_request,
-    build_tools_list_request,
-    build_tool_call_request,
-)
-
-from .client import AsyncMCPClient, get_settings
-
-from .tutu_tools import (
-    SEARCH_TOOLS,
-    INSTRUCTION_TOOLS,
-    DETAIL_TOOLS,
-    ACTION_TOOLS,
-    RESOURCE_TOOLS,
-    ALL_TOOLS,
-    TOOL_CATEGORIES,
-)
+from .client import SyncMCPClient, get_settings
+from .models import MCPTool, MCPRequest, MCPResponse
 
 __all__ = [
-    # Models
-    "MCPRequest",
-    "MCPError", 
-    "MCPResponse",
-    "MCPTool",
-    "MCPToolResult",
-    "build_initialize_request",
-    "build_tools_list_request",
-    "build_tool_call_request",
-    # Client
-    "AsyncMCPClient",
+    "SyncMCPClient",
     "get_settings",
-    # Tutu tools definitions
-    "SEARCH_TOOLS",
-    "INSTRUCTION_TOOLS",
-    "DETAIL_TOOLS",
-    "ACTION_TOOLS",
-    "RESOURCE_TOOLS",
-    "ALL_TOOLS",
-    "TOOL_CATEGORIES",
+    "MCPTool",
+    "MCPRequest",
+    "MCPResponse",
 ]

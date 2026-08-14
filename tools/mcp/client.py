@@ -1,314 +1,211 @@
 """
-Асинхронный MCP-клиент на aiohttp.
-Используется в FastAPI и WebSocket-режиме. Имеет те же методы, что и
-SyncMCPClient, но возвращает coroutine.
-
-Исправлено:
-1. Относительные импорты (models из того же пакета).
-2. notifications/initialized после initialize.
-3. Парсинг SSE (text/event-stream).
-4. Timeout для call_tool = 120 сек.
-5. call_tool принимает ОБА порядка аргументов:
-   call_tool("search_rail", {...})                      — новый стиль
-   call_tool("search_rail", {...}, session=s)           — новый стиль с сессией
-   call_tool(s, "search_rail", {...})                   — старый стиль (legacy)
-   Если сессию не передали — клиент создаёт свою (лениво).
+Синхронный MCP-клиент на requests с поддержкой SSE.
+Используется в консольном агенте (ft_assistant2026).
 """
-
-from __future__ import annotations
-
 import json
 import logging
-import uuid
-from typing import Any, Dict, List, Optional
+import requests
+from typing import Any, Dict, List, Optional, Callable
+from datetime import datetime
 
-import aiohttp
+# Импортируем декоратор из корня проекта (agent_tools.py)
+# Так как client.py лежит в tools/mcp/, то корень — это ../../
+import sys
+from pathlib import Path
 
-from .models import (
-    MCPTool,
-    build_initialize_request,
-    build_tool_call_request,
-    build_tools_list_request,
-)
+# Добавляем корень проекта в путь, чтобы видеть agent_tools
+ROOT_DIR = Path(__file__).parent.parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
 
+try:
+    from agent_tools import tool
+except ImportError:
+    # Фолбэк, если запускаем не из корня
+    print("Warning: Could not import 'tool' from agent_tools. MCP tools will not be decorated.")
+    def tool(func): return func # Заглушка
 
-class AsyncMCPClient:
-    """Асинхронный клиент для вызова MCP-инструментов."""
+logger = logging.getLogger("agent.mcp.sync")
 
-    def __init__(
-        self,
-        url: Optional[str] = None,
-        headers: Optional[Dict[str, str]] = None,
-        logger: Optional[logging.Logger] = None,
-        settings=None,
-    ):
-        settings = settings or get_settings()
-        self.url = url or settings.mcp_url
+class SyncMCPClient:
+    """Синхронный клиент для вызова MCP-инструментов."""
+    
+    def __init__(self, url: str = "https://mcp.tutu.ru/sse", timeout: int = 60):
+        self.url = url
+        self.timeout = timeout
         self.session_id: Optional[str] = None
-        self.logger = logger or logging.getLogger("travel_agent.mcp.async")
-        self._settings = settings
-        self._tools_cache: Optional[List[MCPTool]] = None
-        self._own_session: Optional[aiohttp.ClientSession] = None
-
-        # Базовые заголовки — точно как в рабочем main_tests.py
-        self.headers: Dict[str, str] = {
+        self.headers = {
             "Content-Type": "application/json",
             "Accept": "application/json, text/event-stream",
-            "MCP-Protocol-Version": settings.mcp_protocol_version,
-            "User-Agent": f"{settings.mcp_client_name}/{settings.mcp_client_version}",
         }
-
-        if headers:
-            self.headers.update(headers)
-        elif settings.mcp_headers:
-            self.headers.update(settings.mcp_headers)
-
-    # ------------------------------------------------------------------
-    # Собственная aiohttp-сессия (ленивая)
-    # ------------------------------------------------------------------
-    async def _get_session(self) -> aiohttp.ClientSession:
-        """Создаёт свою сессию, если внешнюю не передали."""
-        if self._own_session is None or self._own_session.closed:
-            self._own_session = aiohttp.ClientSession()
-        return self._own_session
-
-    # ------------------------------------------------------------------
-    # Парсинг ответа (JSON или SSE)
-    # ------------------------------------------------------------------
-    def _parse_response_body(self, text: str, content_type: str) -> Dict[str, Any]:
-        """Разбирает тело ответа: JSON или SSE."""
+        self._tools_cache: List[Dict] = []
+        self._initialized = False
+        
+    def _parse_sse_response(self, text: str) -> dict:
+        """Парсит ответ в формате SSE (Server-Sent Events)."""
         if not text.strip():
-            return {"jsonrpc": "2.0", "result": {}, "_empty": True}
-
-        # 1) Обычный JSON
-        if "application/json" in content_type or text.lstrip()[:1] in ("{", "["):
+            return {"error": "Пустой ответ от сервера"}
+        
+        if text.lstrip().startswith("{"):
             try:
                 return json.loads(text)
-            except (json.JSONDecodeError, ValueError):
+            except json.JSONDecodeError:
                 pass
-
-        # 2) SSE (text/event-stream)
-        if (
-            "text/event-stream" in content_type
-            or text.lstrip().startswith(("event:", "data:"))
-            or "\ndata:" in text
-        ):
-            events = []
-            for raw_line in text.splitlines():
-                raw_line = raw_line.strip()
-                if raw_line.startswith("data:"):
-                    data = raw_line[5:].strip()
-                    if not data or data == "[DONE]":
-                        continue
+        
+        events = []
+        for line in text.splitlines():
+            line = line.strip()
+            if line.startswith("data:"):
+                data_str = line[5:].strip()
+                if data_str and data_str != "[DONE]":
                     try:
-                        events.append(json.loads(data))
-                    except (json.JSONDecodeError, ValueError):
-                        pass
+                        events.append(json.loads(data_str))
+                    except json.JSONDecodeError:
+                        continue
+        
+        if events:
+            for event in reversed(events):
+                if isinstance(event, dict) and ("result" in event or "error" in event):
+                    return event
+            return events[-1]
+        
+        return {"error": f"Не удалось распарсить SSE-ответ: {text[:200]}"}
 
-            if events:
-                for event in reversed(events):
-                    if isinstance(event, dict) and ("result" in event or "error" in event):
-                        return event
-                return events[-1]
-
-        # 3) Fallback
-        try:
-            return json.loads(text)
-        except (json.JSONDecodeError, ValueError):
-            self.logger.warning(f"MCP: не удалось распарсить ответ (len={len(text)})")
-            return {"jsonrpc": "2.0", "result": {}, "_parse_error": True, "_raw": text[:500]}
-
-    # ------------------------------------------------------------------
-    # HTTP POST с обработкой сессии
-    # ------------------------------------------------------------------
-    async def _post(
-        self,
-        session: aiohttp.ClientSession,
-        payload: Dict[str, Any],
-        timeout: int = 120,
-    ) -> Dict[str, Any]:
-        """Отправляет JSON-RPC запрос и возвращает разобранный ответ."""
+    def _post(self, payload: dict, timeout: int = None) -> dict:
         headers = dict(self.headers)
         if self.session_id:
             headers["Mcp-Session-Id"] = self.session_id
-
+            
         try:
-            # default=str — защита от случайной сериализации несериализуемых объектов
-            self.logger.debug(
-                f"MCP POST: {json.dumps(payload, ensure_ascii=False, default=str)[:2000]}"
+            resp = requests.post(
+                self.url, 
+                json=payload, 
+                headers=headers, 
+                timeout=timeout or self.timeout
             )
-            async with session.post(
-                self.url,
-                json=payload,
-                headers=headers,
-                timeout=aiohttp.ClientTimeout(total=timeout),
-            ) as resp:
-                new_session_id = resp.headers.get("Mcp-Session-Id")
-                if new_session_id:
-                    self.session_id = new_session_id
-
-                text = await resp.text()
-                content_type = resp.headers.get("Content-Type", "")
-
-                self.logger.debug(f"MCP response: status={resp.status}, len={len(text)}")
-
-                if resp.status == 202:
-                    return {"jsonrpc": "2.0", "result": {}, "_accepted": True}
-
-                if resp.status != 200:
-                    error_text = text[:500] if text else ""
-                    self.logger.error(f"MCP HTTP {resp.status}: {error_text}")
-                    return {"error": f"HTTP {resp.status}: {error_text}"}
-
-                return self._parse_response_body(text, content_type)
-
-        except aiohttp.ClientError as e:
-            self.logger.error(f"MCP connection error: {e}")
-            return {"error": f"Connection error: {e}"}
+            
+            new_session_id = resp.headers.get("Mcp-Session-Id")
+            if new_session_id:
+                self.session_id = new_session_id
+            
+            if resp.status_code != 200:
+                return {"error": f"HTTP {resp.status_code}: {resp.text[:200]}"}
+            
+            content_type = resp.headers.get("Content-Type", "")
+            if "text/event-stream" in content_type:
+                return self._parse_sse_response(resp.text)
+            else:
+                try:
+                    return resp.json()
+                except json.JSONDecodeError:
+                    return self._parse_sse_response(resp.text)
+                    
+        except requests.exceptions.Timeout:
+            return {"error": "Timeout"}
         except Exception as e:
-            self.logger.error(f"MCP request error: {e}")
             return {"error": str(e)}
 
-    # ------------------------------------------------------------------
-    # Инициализация
-    # ------------------------------------------------------------------
-    async def initialize(self, session: aiohttp.ClientSession) -> Dict[str, Any]:
-        """Инициализирует сессию с MCP-сервером."""
-        payload = build_initialize_request(
-            request_id=str(uuid.uuid4()),
-            protocol_version=self._settings.mcp_protocol_version,
-            client_name=self._settings.mcp_client_name,
-            client_version=self._settings.mcp_client_version,
-        )
-        self.logger.info("MCP initialize...")
-        result = await self._post(session, payload.model_dump(), timeout=30)
-
-        if "error" not in result:
-            self.logger.info(
-                "✅ MCP сессия установлена"
-                + (f" (session: {self.session_id[:12]}...)" if self.session_id else " (stateless)")
-            )
-            await self._send_initialized_notification(session)
-        else:
-            self.logger.warning(f"⚠️  MCP init ошибка: {result.get('error')}")
-        return result
-
-    async def _send_initialized_notification(self, session: aiohttp.ClientSession) -> None:
-        """Отправляет notifications/initialized после успешного initialize."""
-        notification = {
-            "jsonrpc": "2.0",
-            "method": "notifications/initialized",
+    def initialize(self) -> bool:
+        if self._initialized:
+            return True
+            
+        init_payload = {
+            "jsonrpc": "2.0", "id": "1", "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05", "capabilities": {},
+                "clientInfo": {"name": "ft_assistant", "version": "1.0"}
+            }
         }
-        await self._post(session, notification, timeout=15)
-        self.logger.debug("MCP notifications/initialized отправлен")
-
-    # ------------------------------------------------------------------
-    # Список инструментов
-    # ------------------------------------------------------------------
-    async def list_tools(
-        self, session: aiohttp.ClientSession, use_cache: bool = True
-    ) -> List[MCPTool]:
-        """Возвращает список доступных инструментов MCP."""
-        if use_cache and self._tools_cache is not None:
-            return self._tools_cache
-
-        payload = build_tools_list_request(request_id=str(uuid.uuid4()))
-        result = await self._post(session, payload.model_dump(), timeout=30)
-
+        
+        result = self._post(init_payload, timeout=10)
         if "error" in result:
-            self.logger.error(f"MCP tools/list failed: {result['error']}")
-            return []
+            logger.error(f"MCP Init Error: {result['error']}")
+            return False
+        
+        notif_payload = {"jsonrpc": "2.0", "method": "notifications/initialized"}
+        self._post(notif_payload, timeout=5)
+        
+        self._initialized = True
+        logger.info("✅ MCP сессия инициализирована")
+        return True
 
+    def list_tools(self) -> List[Dict]:
+        if not self._initialized:
+            if not self.initialize():
+                return []
+        
+        if self._tools_cache:
+            return self._tools_cache
+            
+        payload = {"jsonrpc": "2.0", "id": "2", "method": "tools/list", "params": {}}
+        result = self._post(payload, timeout=10)
+        
+        if "error" in result:
+            logger.error(f"MCP tools/list failed: {result['error']}")
+            return []
+        
         tools_data = result.get("result", {}).get("tools", [])
-        self._tools_cache = [MCPTool(**t) for t in tools_data]
-        self.logger.info(f"MCP tools/list: {len(self._tools_cache)} инструментов")
+        self._tools_cache = tools_data
+        logger.info(f"📋 Получено {len(tools_data)} MCP-инструментов")
         return self._tools_cache
 
-    # ------------------------------------------------------------------
-    # Вызов инструмента (гибкая сигнатура — ключевой фикс)
-    # ------------------------------------------------------------------
-    async def call_tool(self, *args, **kwargs) -> Dict[str, Any]:
-        """
-        Вызывает инструмент MCP. Поддерживает все три варианта вызова:
-
-            1) call_tool("search_rail", {...})                        — НОВЫЙ (рекомендуется)
-            2) call_tool("search_rail", {...}, session=http_session)  — новый с явной сессией
-            3) call_tool(http_session, "search_rail", {...})          — legacy
-
-        Если сессию не передали — клиент использует собственную (ленивую).
-
-        ВАЖНО для create_checkout_link:
-        Поля из checkout_ref передаются НА ВЕРХНЕМ УРОВНЕ arguments,
-        а НЕ как вложенный объект. Пример:
-            arguments = {
-                "product_type": "rail",
-                "passengers": 1,
-                **checkout_ref,  # распаковать!
-            }
-        """
-        session = kwargs.pop("session", None)
-
-        if len(args) >= 2 and isinstance(args[0], aiohttp.ClientSession):
-            # legacy: (session, tool_name, arguments)
-            session = args[0]
-            tool_name = args[1]
-            arguments = args[2] if len(args) > 2 else kwargs.pop("arguments", None)
-        elif len(args) >= 1:
-            # новый стиль: (tool_name, arguments)
-            tool_name = args[0]
-            arguments = args[1] if len(args) > 1 else kwargs.pop("arguments", None)
-        else:
-            tool_name = kwargs.pop("tool_name")
-            arguments = kwargs.pop("arguments", None)
-
-        # Если сессию не передали — создаём свою
-        session = session or await self._get_session()
-
-        payload = build_tool_call_request(
-            request_id=str(uuid.uuid4()),
-            tool_name=tool_name,
-            arguments=arguments or {},
-        )
-        self.logger.info(f"MCP call: {tool_name}")
-        self.logger.debug(
-            f"MCP call arguments: {json.dumps(arguments or {}, ensure_ascii=False, default=str)[:1000]}"
-        )
-
-        result = await self._post(session, payload.model_dump(), timeout=120)
-
+    def call_tool(self, tool_name: str, arguments: dict) -> str:
+        if not self._initialized:
+            if not self.initialize():
+                return "❌ MCP не инициализирован"
+        
+        payload = {
+            "jsonrpc": "2.0", 
+            "id": str(datetime.now().timestamp()),
+            "method": "tools/call", 
+            "params": {"name": tool_name, "arguments": arguments}
+        }
+        
+        result = self._post(payload, timeout=120)
+        
         if "error" in result:
-            self.logger.error(f"MCP call {tool_name} failed: {result['error']}")
-            return {"error": result["error"], "isError": True}
+            return f"❌ MCP Error: {result['error']}"
+        
+        content = result.get("result", {}).get("content", [])
+        if content and isinstance(content[0], dict):
+            return content[0].get("text", str(result))
+        
+        return str(result)
 
-        mcp_result = result.get("result", {})
-
-        # Проверяем isError на уровне MCP
-        if isinstance(mcp_result, dict) and mcp_result.get("isError"):
-            error_text = ""
-            content = mcp_result.get("content", [])
-            if content and isinstance(content[0], dict):
-                error_text = content[0].get("text", "")
-            self.logger.warning(f"MCP tool {tool_name} вернул ошибку: {error_text[:200]}")
-
-        return mcp_result
-
-    # ------------------------------------------------------------------
-    # Очистка
-    # ------------------------------------------------------------------
-    async def close(self) -> None:
-        """Очищает кэш и закрывает собственную сессию (async!)."""
-        self._tools_cache = None
-        if self._own_session is not None and not self._own_session.closed:
-            await self._own_session.close()
-
-
-def get_settings():
-    """Возвращает настройки MCP по умолчанию или из окружения."""
-    class Settings:
-        mcp_url = "https://mcp.tutu.ru/sse"
-        mcp_protocol_version = "2024-11-05"
-        mcp_client_name = "touragent"
-        mcp_client_version = "1.0.0"
-        mcp_headers = {}
-    
-    return Settings()
+    def get_tools_as_functions(self) -> List[Callable]:
+        """Динамически создаёт Python-функции для каждого MCP-инструмента."""
+        tools_defs = self.list_tools()
+        functions = []
+        
+        for t_def in tools_defs:
+            name = t_def.get("name")
+            desc = t_def.get("description", "MCP tool")
+            input_schema = t_def.get("inputSchema", {})
+            
+            def make_wrapper(t_name):
+                def wrapper(**kwargs):
+                    clean_args = {k: v for k, v in kwargs.items() if v is not None}
+                    return self.call_tool(t_name, clean_args)
+                
+                wrapper.__name__ = t_name
+                wrapper.__doc__ = desc
+                
+                # Создаём аннотации для декоратора @tool
+                properties = input_schema.get("properties", {})
+                annotations = {}
+                for prop_name, prop_def in properties.items():
+                    p_type = prop_def.get("type", "string")
+                    p_desc = prop_def.get("description", "")
+                    type_map = {"string": str, "integer": int, "number": float, "boolean": bool, "array": list, "object": dict}
+                    py_type = type_map.get(p_type, str)
+                    
+                    from typing import Annotated
+                    annotations[prop_name] = Annotated[py_type, p_desc]
+                
+                wrapper.__annotations__ = annotations
+                return tool(wrapper)
+            
+            func = make_wrapper(name)
+            functions.append(func)
+            
+        return functions
