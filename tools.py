@@ -1,16 +1,11 @@
 """
 📋 Что включено в этот файл
-1. Декоратор
-@tool, _extract_parameters_schema, _python_type_to_json, collect_tools, create_tool_router
-2. Базовые инструменты
-load_skill, bash_execute, file_read, file_write
-3. YandexTools
-Класс с методами для Files API, Code Interpreter, Image Generation, MCP
-4. Фабрика
-create_all_tools для удобной инициализации
-
+1. Декоратор @tool, _extract_parameters_schema, _python_type_to_json, collect_tools, create_tool_router
+2. Базовые инструменты load_skill, bash_execute, file_read, file_write
+3. YandexTools Класс с методами для Files API, Code Interpreter, Image Generation, MCP
+4. Фабрика create_all_tools для удобной инициализации
+5. Вспомогательные функции форматирования (для консоли и логов)
 """
-
 
 import inspect
 import json
@@ -20,6 +15,43 @@ from pathlib import Path
 from datetime import datetime
 import os
 import re
+
+
+# ============================================================
+# Вспомогательные функции форматирования (для консоли и логов)
+# ============================================================
+
+def _short_args(args: dict, max_total: int = 60) -> str:
+    """Сжимает аргументы вызова инструмента в короткую строку для консоли.
+
+    Каждое значение урезается до 30 символов, итоговая строка — до max_total.
+    Пример: {'code': '<огромный скрипт>'} превратится в code='try: import open...'.
+    Полные аргументы отдельно пишутся в log.txt на уровне DEBUG.
+    """
+    if not args:
+        return ""
+    parts = []
+    for k, v in args.items():
+        sv = str(v)
+        if len(sv) > 30:
+            sv = sv[:27] + "..."
+        parts.append(f"{k}={sv!r}")
+    s = ", ".join(parts)
+    return s if len(s) <= max_total else s[:max_total - 3] + "..."
+
+
+def _short_text(text: str, limit: int = 120) -> str:
+    """Делает из текста однострочное превью без переносов для консоли.
+
+    Склеивает все переносы и лишние пробелы в одну строку и урезает до limit.
+    Используется для компактного показа сообщения пользователя
+    и размышлений модели; полные тексты остаются в log.txt.
+    """
+    if not text:
+        return ""
+    one_line = " ".join(text.split())
+    return one_line if len(one_line) <= limit else one_line[:limit] + "…"
+
 
 # ============================================================
 # 1. Декоратор @tool — превращает функции в инструменты для LLM

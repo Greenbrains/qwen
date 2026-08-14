@@ -1,5 +1,5 @@
 # ============================================================
-# Агент со скилами в 0.1.0
+# Агент со скилами v1.0
 # ============================================================
 
 import os
@@ -7,10 +7,18 @@ import sys
 import json
 import logging
 from pathlib import Path
+
 from dotenv import load_dotenv
 from openai import OpenAI
 import yaml
-from tools import create_all_tools, collect_tools, create_tool_router, load_skills_catalog
+from tools import (
+    create_all_tools,
+    collect_tools,
+    create_tool_router,
+    load_skills_catalog,
+    _short_args,
+    _short_text,
+)
 
 load_dotenv()
 
@@ -58,10 +66,7 @@ def setup_logger() -> logging.Logger:
     sh.setLevel(logging.INFO)
     sh.setFormatter(logging.Formatter("%(message)s"))
     logger.addHandler(sh)
-
     return logger
-
-
 logger = setup_logger()
 
 
@@ -102,7 +107,7 @@ GENERATION = PROMPTS.get("generation", {})
 
 YANDEX_API_KEY = os.getenv("YANDEX_API_KEY")
 YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID")
-YANDEX_MODEL = os.getenv("YANDEX_MODEL", "yandexgpt/latest")
+YANDEX_MODEL = GENERATION.get("model", "yandexgpt/latest")
 
 # Клиент OpenAI-совместимого API Яндекс AI Studio
 client = OpenAI(

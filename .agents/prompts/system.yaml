@@ -60,6 +60,7 @@ continuation_prompts:
 
 # Параметры генерации модели.
 generation:
+  model: qwen3.6-35b-a3b/latest
   temperature: 0.3
   max_tokens: 16384
-  max_iterations: 25
+  max_iterations: 10
