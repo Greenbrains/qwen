@@ -203,6 +203,21 @@ class SyncMCPClient:
                     annotations[prop_name] = Annotated[py_type, p_desc]
                 
                 wrapper.__annotations__ = annotations
+                
+                # Добавляем атрибуты для совместимости с create_tool_router()
+                wrapper._tool_name = t_name
+                wrapper._tool_description = t_desc
+                
+                # Создаём JSON-схему для инструмента
+                wrapper._tool_schema = {
+                    "type": "function",
+                    "function": {
+                        "name": t_name,
+                        "description": t_desc,
+                        "parameters": t_schema
+                    }
+                }
+                
                 return wrapper
             
             func = make_wrapper(name, desc, input_schema)
