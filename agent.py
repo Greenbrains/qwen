@@ -96,7 +96,7 @@ client = OpenAI(
 mcp_client = None
 if MCP_AVAILABLE:
     try:
-        mcp_client = SyncMCPClient(url="https://mcp.tutu.ru/sse")
+        mcp_client = SyncMCPClient(url="https://mcp.tutu.ru/mcp")
         if mcp_client.initialize():
             logger.info("✅ MCP-клиент (Туту) подключен")
         else:

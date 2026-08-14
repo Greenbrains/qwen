@@ -8,36 +8,23 @@ import requests
 from typing import Any, Dict, List, Optional, Callable
 from datetime import datetime
 
-# Импортируем декоратор из корня проекта (agent_tools.py)
-# Так как client.py лежит в tools/mcp/, то корень — это ../../
-import sys
-from pathlib import Path
-
-# Добавляем корень проекта в путь, чтобы видеть agent_tools
-ROOT_DIR = Path(__file__).parent.parent.parent
-if str(ROOT_DIR) not in sys.path:
-    sys.path.append(str(ROOT_DIR))
-
-try:
-    from agent_tools import tool
-except ImportError:
-    # Фолбэк, если запускаем не из корня
-    print("Warning: Could not import 'tool' from agent_tools. MCP tools will not be decorated.")
-    def tool(func): return func # Заглушка
-
 logger = logging.getLogger("agent.mcp.sync")
 
 class SyncMCPClient:
     """Синхронный клиент для вызова MCP-инструментов."""
     
-    def __init__(self, url: str = "https://mcp.tutu.ru/sse", timeout: int = 60):
+    def __init__(self, url: str = "https://mcp.tutu.ru/mcp", timeout: int = 60, headers: Optional[Dict[str, str]] = None):
         self.url = url
         self.timeout = timeout
         self.session_id: Optional[str] = None
         self.headers = {
             "Content-Type": "application/json",
             "Accept": "application/json, text/event-stream",
+            "MCP-Protocol-Version": "2024-11-05",
+            "User-Agent": "tutu-travel-agent/2.0.0",
         }
+        if headers:
+            self.headers.update(headers)
         self._tools_cache: List[Dict] = []
         self._initialized = False
         
@@ -88,8 +75,14 @@ class SyncMCPClient:
             if new_session_id:
                 self.session_id = new_session_id
             
+            # 202 Accepted — нормальный ответ для notifications
+            if resp.status_code == 202:
+                return {"jsonrpc": "2.0", "result": {}, "_accepted": True}
+            
             if resp.status_code != 200:
-                return {"error": f"HTTP {resp.status_code}: {resp.text[:200]}"}
+                error_text = resp.text[:200] if resp.text else ""
+                logger.error(f"MCP HTTP {resp.status_code}: {error_text}")
+                return {"error": f"HTTP {resp.status_code}: {error_text}"}
             
             content_type = resp.headers.get("Content-Type", "")
             if "text/event-stream" in content_type:
@@ -101,8 +94,10 @@ class SyncMCPClient:
                     return self._parse_sse_response(resp.text)
                     
         except requests.exceptions.Timeout:
+            logger.error("MCP timeout")
             return {"error": "Timeout"}
         except Exception as e:
+            logger.error(f"MCP request error: {e}")
             return {"error": str(e)}
 
     def initialize(self) -> bool:
@@ -112,18 +107,23 @@ class SyncMCPClient:
         init_payload = {
             "jsonrpc": "2.0", "id": "1", "method": "initialize",
             "params": {
-                "protocolVersion": "2024-11-05", "capabilities": {},
-                "clientInfo": {"name": "ft_assistant", "version": "1.0"}
+                "protocolVersion": "2024-11-05", 
+                "capabilities": {},
+                "clientInfo": {"name": "tutu-travel-agent", "version": "2.0.0"}
             }
         }
         
-        result = self._post(init_payload, timeout=10)
+        logger.info(f"MCP initialize на {self.url}...")
+        result = self._post(init_payload, timeout=30)
         if "error" in result:
             logger.error(f"MCP Init Error: {result['error']}")
             return False
         
+        logger.info("✅ MCP сессия установлена" + (f" (session: {self.session_id[:12]}...)" if self.session_id else " (stateless)"))
+        
         notif_payload = {"jsonrpc": "2.0", "method": "notifications/initialized"}
-        self._post(notif_payload, timeout=5)
+        self._post(notif_payload, timeout=15)
+        logger.debug("MCP notifications/initialized отправлен")
         
         self._initialized = True
         logger.info("✅ MCP сессия инициализирована")
@@ -182,16 +182,16 @@ class SyncMCPClient:
             desc = t_def.get("description", "MCP tool")
             input_schema = t_def.get("inputSchema", {})
             
-            def make_wrapper(t_name):
+            def make_wrapper(t_name, t_desc, t_schema):
                 def wrapper(**kwargs):
                     clean_args = {k: v for k, v in kwargs.items() if v is not None}
                     return self.call_tool(t_name, clean_args)
                 
                 wrapper.__name__ = t_name
-                wrapper.__doc__ = desc
+                wrapper.__doc__ = t_desc
                 
-                # Создаём аннотации для декоратора @tool
-                properties = input_schema.get("properties", {})
+                # Создаём аннотации
+                properties = t_schema.get("properties", {})
                 annotations = {}
                 for prop_name, prop_def in properties.items():
                     p_type = prop_def.get("type", "string")
@@ -203,9 +203,9 @@ class SyncMCPClient:
                     annotations[prop_name] = Annotated[py_type, p_desc]
                 
                 wrapper.__annotations__ = annotations
-                return tool(wrapper)
+                return wrapper
             
-            func = make_wrapper(name)
+            func = make_wrapper(name, desc, input_schema)
             functions.append(func)
             
         return functions
