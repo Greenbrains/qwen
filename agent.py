@@ -1,5 +1,5 @@
 # ============================================================
-# Агент со скилами v2 — движок + класс Agent (мультиагент-ready)
+# Агент со скилами v2_1 — движок + класс Agent (мультиагент-ready)
 #
 # Ключевые улучшения относительно v1.3:
 #  1. Экономия токенов: MCP подключается прокси-инструментом tutu_call
@@ -31,7 +31,11 @@ from agent_tools import (
 )
 
 try:
-    from tools.mcp import SyncMCPClient, tutu_catalog_markdown_fallback
+    from tools.mcp import (
+        SyncMCPClient,
+        tutu_catalog_markdown,
+        tutu_catalog_markdown_fallback,
+    )
     MCP_AVAILABLE = True
 except ImportError as e:  # noqa
     MCP_AVAILABLE = False
@@ -275,9 +279,15 @@ ALL_TOOLS = create_all_tools(client, model_name=MODEL_URI, mcp_client=mcp_client
 
 
 def tutu_catalog() -> str:
-    """Короткий каталог инструментов Туту для системного промпта (живой или fallback)."""
+    """Полный по параметрам каталог инструментов Туту для системного промпта.
+
+    ВАЖНО: включает точные имена required/optional полей каждого инструмента
+    (из inputSchema сервера). Именно этого не хватало модели — раньше она
+    угадывала поля (from_city, passengers, arrival_before) и ловила
+    extra_forbidden от сервера.
+    """
     if mcp_client:
-        md = mcp_client.tools_catalog_markdown()
+        md = tutu_catalog_markdown(mcp_client)
         if md and not md.startswith("_MCP"):
             return md
     return tutu_catalog_markdown_fallback()
@@ -294,7 +304,12 @@ def build_system_prompt(extra: str = "") -> str:
         + "(Выбери по колонке «когда использовать» и загрузи через load_skill.)\n\n"
         + catalog
         + "\n\n## Каталог инструментов Туту (вызывай через `tutu_call`)\n"
-        + "Вызов: `tutu_call(tool=\"search_avia\", args_json='{\"origin\":\"Москва\",...}')`\n\n"
+        + "Вызов: `tutu_call(tool=\"search_avia\", "
+        + "args_json='{\"origin\":\"Москва\",\"destination\":\"Сочи\",\"departure_date\":\"2026-08-15\",\"adults\":1}')`\n"
+        + "ПРАВИЛА: используй ТОЛЬКО поля из колонки «Параметры». Не выдумывай "
+        + "поля (нет `passengers` у авиа — есть `adults`; нет фильтров по времени "
+        + "прибытия — фильтруй в тексте ответа). `departure_date` обязателен для "
+        + "поисковых инструментов.\n\n"
         + tutu
         + (("\n\n" + extra) if extra else "")
     )
