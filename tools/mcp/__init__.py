@@ -1,14 +1,5 @@
-"""
-Пакет MCP-клиентов для ft_assistant2026.
-Экспортирует синхронный и асинхронный клиенты, а также модели.
-"""
-
+"""MCP-подсистема агента: клиент, модели протокола, фабрика tutu-инструментов."""
 from .client import SyncMCPClient
-from .models import MCPTool, MCPRequest, MCPResponse
+from .tutu_tools import build_tutu_tools, tutu_catalog_markdown_fallback
 
-__all__ = [
-    "SyncMCPClient",
-    "MCPTool",
-    "MCPRequest",
-    "MCPResponse",
-]
+__all__ = ["SyncMCPClient", "build_tutu_tools", "tutu_catalog_markdown_fallback"]

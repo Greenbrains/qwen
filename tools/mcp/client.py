@@ -1,44 +1,78 @@
 """
-Синхронный MCP-клиент на requests с поддержкой SSE.
-Используется в консольном агенте (ft_assistant2026).
+Синхронный MCP-клиент на requests с поддержкой SSE (Streamable HTTP).
+
+Улучшения v2:
+- Ленивая (lazy) отдача инструментов: полные JSON-схемы всех tutu-инструментов
+  НЕ грузятся в контекст модели на каждом шаге. Вместо этого агенту выдаётся
+  ОДИН прокси-инструмент `tutu_call` + короткий каталог (см. tutu_tools.py).
+  Это радикально снижает расход токенов (было ~16 схем/итерацию).
+- Корректная обработка isError из ответа tools/call.
+- Монотонные id запросов (без коллизий по timestamp).
+- Мягкое переустановление сессии при 4xx (session expired).
+- TTL-кэш списка инструментов вместо «вечного» кэша.
 """
+from __future__ import annotations
+
+import itertools
 import json
 import logging
+import threading
+import time
+from typing import Any, Callable, Dict, List, Optional
+
 import requests
-from typing import Any, Dict, List, Optional, Callable
-from datetime import datetime
 
 logger = logging.getLogger("agent.mcp.sync")
 
+_PROTOCOL_VERSION = "2024-11-05"
+
+
 class SyncMCPClient:
-    """Синхронный клиент для вызова MCP-инструментов."""
-    
-    def __init__(self, url: str = "https://mcp.tutu.ru/mcp", timeout: int = 60, headers: Optional[Dict[str, str]] = None):
+    """Синхронный клиент для вызова MCP-инструментов по Streamable HTTP."""
+
+    def __init__(
+        self,
+        url: str = "https://mcp.tutu.ru/mcp",
+        timeout: int = 60,
+        headers: Optional[Dict[str, str]] = None,
+        tools_ttl: int = 300,
+    ):
         self.url = url
         self.timeout = timeout
+        self.tools_ttl = tools_ttl
         self.session_id: Optional[str] = None
         self.headers = {
             "Content-Type": "application/json",
             "Accept": "application/json, text/event-stream",
-            "MCP-Protocol-Version": "2024-11-05",
-            "User-Agent": "tutu-travel-agent/2.0.0",
+            "MCP-Protocol-Version": _PROTOCOL_VERSION,
+            "User-Agent": "tutu-travel-agent/2.1.0",
         }
         if headers:
             self.headers.update(headers)
+
         self._tools_cache: List[Dict] = []
+        self._tools_cached_at: float = 0.0
         self._initialized = False
-        
+        self._id_counter = itertools.count(1)
+        self._lock = threading.Lock()
+
+    # ------------------------------------------------------------------
+    # low-level transport
+    # ------------------------------------------------------------------
+    def _next_id(self) -> str:
+        return str(next(self._id_counter))
+
     def _parse_sse_response(self, text: str) -> dict:
         """Парсит ответ в формате SSE (Server-Sent Events)."""
         if not text.strip():
             return {"error": "Пустой ответ от сервера"}
-        
+
         if text.lstrip().startswith("{"):
             try:
                 return json.loads(text)
             except json.JSONDecodeError:
                 pass
-        
+
         events = []
         for line in text.splitlines():
             line = line.strip()
@@ -49,50 +83,24 @@ class SyncMCPClient:
                         events.append(json.loads(data_str))
                     except json.JSONDecodeError:
                         continue
-        
+
         if events:
             for event in reversed(events):
                 if isinstance(event, dict) and ("result" in event or "error" in event):
                     return event
             return events[-1]
-        
+
         return {"error": f"Не удалось распарсить SSE-ответ: {text[:200]}"}
 
     def _post(self, payload: dict, timeout: int = None) -> dict:
         headers = dict(self.headers)
         if self.session_id:
             headers["Mcp-Session-Id"] = self.session_id
-            
+
         try:
             resp = requests.post(
-                self.url, 
-                json=payload, 
-                headers=headers, 
-                timeout=timeout or self.timeout
+                self.url, json=payload, headers=headers, timeout=timeout or self.timeout
             )
-            
-            new_session_id = resp.headers.get("Mcp-Session-Id")
-            if new_session_id:
-                self.session_id = new_session_id
-            
-            # 202 Accepted — нормальный ответ для notifications
-            if resp.status_code == 202:
-                return {"jsonrpc": "2.0", "result": {}, "_accepted": True}
-            
-            if resp.status_code != 200:
-                error_text = resp.text[:200] if resp.text else ""
-                logger.error(f"MCP HTTP {resp.status_code}: {error_text}")
-                return {"error": f"HTTP {resp.status_code}: {error_text}"}
-            
-            content_type = resp.headers.get("Content-Type", "")
-            if "text/event-stream" in content_type:
-                return self._parse_sse_response(resp.text)
-            else:
-                try:
-                    return resp.json()
-                except json.JSONDecodeError:
-                    return self._parse_sse_response(resp.text)
-                    
         except requests.exceptions.Timeout:
             logger.error("MCP timeout")
             return {"error": "Timeout"}
@@ -100,127 +108,139 @@ class SyncMCPClient:
             logger.error(f"MCP request error: {e}")
             return {"error": str(e)}
 
-    def initialize(self) -> bool:
-        if self._initialized:
-            return True
-            
-        init_payload = {
-            "jsonrpc": "2.0", "id": "1", "method": "initialize",
-            "params": {
-                "protocolVersion": "2024-11-05", 
-                "capabilities": {},
-                "clientInfo": {"name": "tutu-travel-agent", "version": "2.0.0"}
-            }
-        }
-        
-        logger.info(f"MCP initialize на {self.url}...")
-        result = self._post(init_payload, timeout=30)
-        if "error" in result:
-            logger.error(f"MCP Init Error: {result['error']}")
-            return False
-        
-        logger.info("✅ MCP сессия установлена" + (f" (session: {self.session_id[:12]}...)" if self.session_id else " (stateless)"))
-        
-        notif_payload = {"jsonrpc": "2.0", "method": "notifications/initialized"}
-        self._post(notif_payload, timeout=15)
-        logger.debug("MCP notifications/initialized отправлен")
-        
-        self._initialized = True
-        logger.info("✅ MCP сессия инициализирована")
-        return True
+        new_session_id = resp.headers.get("Mcp-Session-Id")
+        if new_session_id:
+            self.session_id = new_session_id
 
-    def list_tools(self) -> List[Dict]:
-        if not self._initialized:
-            if not self.initialize():
-                return []
-        
-        if self._tools_cache:
+        # 202 Accepted — нормальный ответ для notifications
+        if resp.status_code == 202:
+            return {"jsonrpc": "2.0", "result": {}, "_accepted": True}
+
+        # 4xx — вероятно, протухла сессия: сбрасываем состояние
+        if resp.status_code in (400, 401, 404):
+            logger.warning("MCP HTTP %s — сбрасываю сессию", resp.status_code)
+            self.session_id = None
+            self._initialized = False
+            return {"error": f"HTTP {resp.status_code}: {resp.text[:200]}"}
+
+        if resp.status_code != 200:
+            error_text = resp.text[:200] if resp.text else ""
+            logger.error(f"MCP HTTP {resp.status_code}: {error_text}")
+            return {"error": f"HTTP {resp.status_code}: {error_text}"}
+
+        content_type = resp.headers.get("Content-Type", "")
+        if "text/event-stream" in content_type:
+            return self._parse_sse_response(resp.text)
+        try:
+            return resp.json()
+        except json.JSONDecodeError:
+            return self._parse_sse_response(resp.text)
+
+    # ------------------------------------------------------------------
+    # protocol
+    # ------------------------------------------------------------------
+    def initialize(self) -> bool:
+        with self._lock:
+            if self._initialized:
+                return True
+
+            init_payload = {
+                "jsonrpc": "2.0",
+                "id": self._next_id(),
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": _PROTOCOL_VERSION,
+                    "capabilities": {},
+                    "clientInfo": {"name": "tutu-travel-agent", "version": "2.1.0"},
+                },
+            }
+
+            logger.info(f"MCP initialize на {self.url}...")
+            result = self._post(init_payload, timeout=30)
+            if "error" in result:
+                logger.error(f"MCP Init Error: {result['error']}")
+                return False
+
+            logger.info(
+                "✅ MCP сессия установлена"
+                + (f" (session: {self.session_id[:12]}...)" if self.session_id else " (stateless)")
+            )
+
+            self._post({"jsonrpc": "2.0", "method": "notifications/initialized"}, timeout=15)
+            self._initialized = True
+            return True
+
+    def list_tools(self, force: bool = False) -> List[Dict]:
+        if not self._initialized and not self.initialize():
+            return []
+
+        fresh = (time.time() - self._tools_cached_at) < self.tools_ttl
+        if self._tools_cache and fresh and not force:
             return self._tools_cache
-            
-        payload = {"jsonrpc": "2.0", "id": "2", "method": "tools/list", "params": {}}
-        result = self._post(payload, timeout=10)
-        
+
+        payload = {"jsonrpc": "2.0", "id": self._next_id(), "method": "tools/list", "params": {}}
+        result = self._post(payload, timeout=15)
         if "error" in result:
             logger.error(f"MCP tools/list failed: {result['error']}")
-            return []
-        
+            return self._tools_cache  # возвращаем прошлый кэш, если был
+
         tools_data = result.get("result", {}).get("tools", [])
-        self._tools_cache = tools_data
-        logger.info(f"📋 Получено {len(tools_data)} MCP-инструментов")
+        if tools_data:
+            self._tools_cache = tools_data
+            self._tools_cached_at = time.time()
+            logger.info(f"📋 Получено {len(tools_data)} MCP-инструментов")
         return self._tools_cache
 
-    def call_tool(self, tool_name: str, arguments: dict) -> str:
-        if not self._initialized:
-            if not self.initialize():
-                return "❌ MCP не инициализирован"
-        
-        payload = {
-            "jsonrpc": "2.0", 
-            "id": str(datetime.now().timestamp()),
-            "method": "tools/call", 
-            "params": {"name": tool_name, "arguments": arguments}
-        }
-        
-        result = self._post(payload, timeout=120)
-        
-        if "error" in result:
-            return f"❌ MCP Error: {result['error']}"
-        
-        content = result.get("result", {}).get("content", [])
-        if content and isinstance(content[0], dict):
-            return content[0].get("text", str(result))
-        
-        return str(result)
+    def call_tool(self, tool_name: str, arguments: dict, _retry: bool = True) -> str:
+        if not self._initialized and not self.initialize():
+            return "❌ MCP не инициализирован"
 
-    def get_tools_as_functions(self) -> List[Callable]:
-        """Динамически создаёт Python-функции для каждого MCP-инструмента."""
-        tools_defs = self.list_tools()
-        functions = []
-        
-        for t_def in tools_defs:
-            name = t_def.get("name")
-            desc = t_def.get("description", "MCP tool")
-            input_schema = t_def.get("inputSchema", {})
-            
-            def make_wrapper(t_name, t_desc, t_schema):
-                def wrapper(**kwargs):
-                    clean_args = {k: v for k, v in kwargs.items() if v is not None}
-                    return self.call_tool(t_name, clean_args)
-                
-                wrapper.__name__ = t_name
-                wrapper.__doc__ = t_desc
-                
-                # Создаём аннотации
-                properties = t_schema.get("properties", {})
-                annotations = {}
-                for prop_name, prop_def in properties.items():
-                    p_type = prop_def.get("type", "string")
-                    p_desc = prop_def.get("description", "")
-                    type_map = {"string": str, "integer": int, "number": float, "boolean": bool, "array": list, "object": dict}
-                    py_type = type_map.get(p_type, str)
-                    
-                    from typing import Annotated
-                    annotations[prop_name] = Annotated[py_type, p_desc]
-                
-                wrapper.__annotations__ = annotations
-                
-                # Добавляем атрибуты для совместимости с create_tool_router()
-                wrapper._tool_name = t_name
-                wrapper._tool_description = t_desc
-                
-                # Создаём JSON-схему для инструмента
-                wrapper._tool_schema = {
-                    "type": "function",
-                    "function": {
-                        "name": t_name,
-                        "description": t_desc,
-                        "parameters": t_schema
-                    }
-                }
-                
-                return wrapper
-            
-            func = make_wrapper(name, desc, input_schema)
-            functions.append(func)
-            
-        return functions
+        payload = {
+            "jsonrpc": "2.0",
+            "id": self._next_id(),
+            "method": "tools/call",
+            "params": {"name": tool_name, "arguments": arguments or {}},
+        }
+
+        result = self._post(payload, timeout=120)
+
+        # авто-восстановление сессии и повтор один раз
+        if "error" in result:
+            if _retry and not self._initialized:
+                logger.info("Повтор call_tool после переустановки сессии")
+                if self.initialize():
+                    return self.call_tool(tool_name, arguments, _retry=False)
+            return f"❌ MCP Error: {result['error']}"
+
+        res = result.get("result", {}) or {}
+        is_error = res.get("isError", False)
+        content = res.get("content", [])
+
+        text_parts = []
+        for item in content:
+            if isinstance(item, dict):
+                if item.get("type") == "text":
+                    text_parts.append(item.get("text", ""))
+                elif "text" in item:
+                    text_parts.append(item["text"])
+        text = "\n".join(p for p in text_parts if p) or json.dumps(res, ensure_ascii=False)
+
+        return (f"❌ Инструмент вернул ошибку:\n{text}" if is_error else text)
+
+    # ------------------------------------------------------------------
+    # helpers
+    # ------------------------------------------------------------------
+    def tools_catalog_markdown(self) -> str:
+        """Короткий человекочитаемый каталог инструментов (для системного промпта)."""
+        tools = self.list_tools()
+        if not tools:
+            return "_MCP-сервер недоступен, каталог инструментов пуст._"
+        lines = ["| Инструмент | Назначение |", "| :--- | :--- |"]
+        for t in tools:
+            name = t.get("name", "?")
+            desc = (t.get("description") or "").split("\n")[0][:110]
+            lines.append(f"| `{name}` | {desc} |")
+        return "\n".join(lines)
+
+    def tool_names(self) -> List[str]:
+        return [t.get("name") for t in self.list_tools() if t.get("name")]
