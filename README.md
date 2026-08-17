@@ -30,22 +30,25 @@
 
 ```
 ft_assistant2026/
-├── agent.py                  # Движок: цикл диалога, tool-calling, логирование, REPL
-├── tools.py                  # Декоратор @tool + все инструменты (локальные и Yandex)
+├── agent.py                  # Движок
+├── agent_tools.py            # 🛠️ Фабрика инструментов
 ├── requirements.txt
-├── .env                      # Секреты: YANDEX_API_KEY, YANDEX_FOLDER_ID, YANDEX_MODEL
+├── .env
 ├── .gitignore
-├── log.txt                   # (генерируется) полный трейс, уровень DEBUG
-├── output/                   # (генерируется) артефакты: xlsx, png и т.д.
+├── log.txt
+├── output/
+├── tools/                    # 🔌 Модули расширения агента
+│   ├── __init__.py
+│   └── mcp/                  # 🌐 MCP-клиент для подключения внешних сервисов
+│       ├── __init__.py
+│       ├── client.py         # MCP-клиент: подключение к серверу, получение инструментов
+│       ├── models.py         # Pydantic-модели для MCP-протокола
+│       └── tutu_tools.py     # Инструменты Туту.ру (search_rail, search_avia, etc.)
 └── .agents/
-    ├── prompts/
-    │   └── system.yaml       # Системный промпт, самопрезентация, пинки, параметры
+    ├── prompts/system.yaml
     └── skills/
-        ├── SKILL.md          # Каталог навыков (файл-роутер для агента)
-        ├── cloudru-vm/cloudru-vm.md
-        ├── cloudru-account-setup/cloudru-account-setup.md
-        ├── browser-use/browser-use.md
-        └── marketingskills/marketingskills.md
+        ├── SKILL.md
+        └── ...
 ```
 
 ---
