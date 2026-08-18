@@ -1,77 +1,187 @@
-﻿import os
+#!/usr/bin/env python3
+"""
+Tutu Travel Agent v4.0 — Мультиагентная система с каталогом скиллов.
+Версия: main_v4.0
+
+Запуск:
+    python main.py [--mode console]
+
+Логирование:
+    - В файл logs.txt (с подсчётом токенов и времени)
+    - В консоль не выводится
+"""
+from __future__ import annotations
+import asyncio
+import logging
 import sys
+from datetime import datetime
 from pathlib import Path
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, JSONResponse
-from contextlib import asynccontextmanager
-from pydantic import BaseModel
+from typing import Optional
 
-# Модель данных для чата
-class ChatRequest(BaseModel):
-    message: str
-    history: list = []
-    context: dict = {}
+from config import get_settings
+from agents.specs import DEFAULT_TEAM
+from agents.orchestrator import AsyncOrchestrator
+from client.memory import MemoryStore
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("🚀 Green Brain Travel Agent Starting...")
-    # Здесь можно инициализировать клиента агента
-    yield
-    print("🛑 Service Stopping...")
+# ======================================================================
+# Настройка логгирования (только в файл, без консоли)
+# ======================================================================
+LOG_FILE = "logs.txt"
 
-app = FastAPI(title="Green Brain Travel Agent", lifespan=lifespan)
-
-# Настройка путей к статике и шаблонам
-# Ищем папку interfaces/web или просто web в корне проекта
-BASE_DIR = Path(__file__).resolve().parent
-WEB_DIR = BASE_DIR / "interfaces" / "web"
-if not WEB_DIR.exists():
-    WEB_DIR = BASE_DIR / "web"
-if not WEB_DIR.exists():
-    WEB_DIR = BASE_DIR # Фоллбэк на корень
-
-STATIC_DIR = WEB_DIR / "static"
-TEMPLATES_DIR = WEB_DIR / "templates"
-
-# Подключаем статику если есть папка
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-
-# Настраиваем шаблоны
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR) if TEMPLATES_DIR.exists() else str(WEB_DIR))
-
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-@app.get("/agent", response_class=HTMLResponse)
-async def agent_page(request: Request):
-    """Страница выбора направлений и чата"""
-    return templates.TemplateResponse("agent.html", {
-        "request": request, 
-        "title": "Travel Agent - Green Brain"
-    })
-
-@app.post("/api/chat")
-async def chat_endpoint(req: ChatRequest):
-    """Эндпоинт для общения с агентом"""
-    # ЗАГЛУШКА: Здесь нужно вызвать реальную логику вашего агента
-    # Например: response = await agent.process(req.message, req.context)
+def setup_logging() -> logging.Logger:
+    """Настраивает логгирование в файл с подсчётом токенов и времени."""
+    logger = logging.getLogger("travel_agent")
+    logger.setLevel(logging.DEBUG)
     
-    country = req.context.get("country", "миром")
-    user_msg = req.message
+    # Очищаем существующие обработчики
+    logger.handlers.clear()
     
-    # Имитация ответа агента
-    response_text = f"Отличный выбор! Для направления '{country}' я могу подобрать туры. Вы спросили: '{user_msg}'. Сейчас анализирую предложения..."
+    # File handler — только в файл
+    file_handler = logging.FileHandler(LOG_FILE, mode="a", encoding="utf-8")
+    file_handler.setLevel(logging.DEBUG)
     
-    return {
-        "response": response_text,
-        "status": "success",
-        "context": {"country": country}
-    }
+    formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    
+    return logger
+
+
+# ======================================================================
+# Консольный интерфейс
+# ======================================================================
+class ConsoleCLI:
+    """Простой консольный чат с агентом."""
+    
+    def __init__(self, logger: logging.Logger):
+        self.logger = logger
+        self.settings = get_settings()
+        self.memory = MemoryStore(db_path="data/memory.db")
+        self.orchestrator: Optional[AsyncOrchestrator] = None
+        self.history = []
+        self.last_agent = None
+        
+    async def init(self):
+        """Инициализация оркестратора."""
+        self.orchestrator = AsyncOrchestrator(
+            specs=DEFAULT_TEAM,
+            settings=self.settings,
+            memory=self.memory
+        )
+        self.logger.info("🚀 Travel Agent v4.0 запущен")
+        self.logger.info(f"📋 Доступные агенты: {', '.join(self.orchestrator.team)}")
+        
+    async def process_query(self, user_input: str) -> str:
+        """Обработка запроса пользователя."""
+        if not self.orchestrator:
+            await self.init()
+        
+        start_time = datetime.now()
+        
+        try:
+            response, new_history, tools_used, agent_name = await self.orchestrator.run(
+                user_input=user_input,
+                history=list(self.history),
+                last_agent=self.last_agent,
+                user_alias="user"
+            )
+            
+            self.history = new_history
+            self.last_agent = agent_name
+            
+            elapsed = (datetime.now() - start_time).total_seconds()
+            self.logger.info(f"⏱️ Обработка заняла {elapsed:.2f}s | Агент: {agent_name} | Инструменты: {len(tools_used)}")
+            
+            return response
+            
+        except Exception as e:
+            self.logger.error(f"❌ Ошибка обработки запроса: {e}", exc_info=True)
+            return f"Произошла ошибка: {e}"
+    
+    async def close(self):
+        """Закрытие ресурсов."""
+        if self.orchestrator:
+            await self.orchestrator.close()
+        if self.memory:
+            self.memory.close()
+        self.logger.info("🛑 Travel Agent остановлен")
+
+
+async def chat_loop():
+    """Основной цикл консольного чата."""
+    logger = setup_logging()
+    cli = ConsoleCLI(logger)
+    
+    print("=" * 60)
+    print("🧳 Tutu Travel Agent v4.0 — Консольный режим")
+    print("=" * 60)
+    print("Команды:")
+    print("  /help  — показать справку")
+    print("  /clear — очистить историю")
+    print("  /log   — показать путь к файлу логов")
+    print("  /exit  — выход")
+    print("=" * 60)
+    
+    await cli.init()
+    
+    try:
+        while True:
+            try:
+                user_input = input("\n👤 Вы: ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print("\n")
+                break
+            
+            if not user_input:
+                continue
+            
+            cmd = user_input.lower()
+            if cmd in ("/exit", "/quit", "/q"):
+                break
+            elif cmd == "/help":
+                print("📋 Доступные команды: /help, /clear, /log, /exit")
+                continue
+            elif cmd == "/clear":
+                cli.history = []
+                cli.last_agent = None
+                print("🗑️ История очищена")
+                continue
+            elif cmd == "/log":
+                log_path = Path(LOG_FILE).resolve()
+                print(f"📄 Файл логов: {log_path}")
+                continue
+            
+            # Обработка запроса
+            print("🤖 Агент печатает...", end="\r")
+            response = await cli.process_query(user_input)
+            print(" " * 50, end="\r")  # Очистить строку
+            print(f"🤖 Агент: {response}")
+            
+    finally:
+        await cli.close()
+
+
+def main():
+    """Точка входа."""
+    # Проверка аргументов командной строки
+    mode = "console"
+    if len(sys.argv) > 1 and sys.argv[1] in ("console", "api", "websocket"):
+        mode = sys.argv[1]
+    
+    if mode != "console":
+        print(f"⚠️ Режим '{mode}' пока не поддерживается в v4.0. Используйте console.")
+        mode = "console"
+    
+    # Запуск основного цикла
+    if mode == "console":
+        asyncio.run(chat_loop())
+    else:
+        print(f"❌ Неизвестный режим: {mode}")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    main()

@@ -1,4 +1,4 @@
-"""Декларации агентов-специалистов."""
+"""Декларации агентов-специалистов. Версия: v4.0"""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Optional
@@ -6,12 +6,13 @@ from typing import List, Optional
 
 @dataclass
 class AgentSpec:
+    """Спецификация агента-специалиста."""
     name: str
     description: str = ""
-    emoji: str = "🤖"           
-    title: str = ""            
-    model: Optional[str] = None
-    skill: str = "full"
+    emoji: str = "🤖"
+    title: str = ""
+    model: Optional[str] = None  # Модель YandexGPT (например, "yandexgpt/latest")
+    skill: str = "touragent"  # Имя скилла из каталога
     extra_tools: List[str] = field(default_factory=list)
     api_type: str = "openai"
     prompt_id: Optional[str] = None
@@ -25,40 +26,26 @@ class AgentSpec:
         return f"{self.emoji} {self.title or self.name}"
 
 
+# Модели YandexGPT из каталога: https://aistudio.yandex.ru/docs/ru/ai-studio/concepts/generation/models.html
+# - yandexgpt/latest — базовая модель общего назначения
+# - yandexgpt-lite/latest — лёгкая модель для простых задач (роутинг)
+# - ruYmZ/latest — мультимодальная (текст + изображения)
+
 DEFAULT_TEAM: List[AgentSpec] = [
     AgentSpec(
-        name="rail",
-        emoji="🚆",
-        title="Ж/Д эксперт",
-        description="Поезда дальнего следования и электрички, выбор мест, багаж",
-        skill="rail",
-    ),
-    AgentSpec(
-        name="avia",
-        emoji="✈️",
-        title="Авиа-эксперт",
-        description="Авиабилеты: рейсы, тарифы, багаж, стыковки",
-        skill="avia",
-    ),
-    AgentSpec(
-        name="hotels",
-        emoji="🏨",
-        title="Эксперт по отелям",
-        description="Отели, апартаменты, хостелы: подбор по датам и бюджету",
-        skill="hotels",
-    ),
-    AgentSpec(
-        name="consultant",
-        emoji="🧭",
-        title="Консультант по маршрутам",
-        description="Сложные мультимодальные маршруты (поезд+самолёт), пересадки, визы, справки",
-        skill="consultant",
+        name="touragent",
+        emoji="🧳",
+        title="Турагент",
+        description="Подбор путешествий: авиа/жд/автобусы/электрички, отели, трансферы, мультимодальные маршруты",
+        skill="touragent",
+        model="yandexgpt/latest",  # Мощная модель для специалистов
     ),
     AgentSpec(
         name="general",
         emoji="🤖",
         title="Ассистент",
         description="Общие, приветственные и смешанные запросы",
-        skill="full",
+        skill="touragent",  # Использует тот же скилл
+        model="yandexgpt/latest",
     ),
 ]
