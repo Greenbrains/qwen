@@ -428,12 +428,15 @@ class YandexTools:
 # ============================================================
 # 5. Реестр «навык → инструменты»
 # ============================================================
+
 SKILL_TOOLSETS = {
     "touragent": ["load_skill", "tutu_call", "file_write", "file_read"],
     "marketingskills": [
         "load_skill", "web_search", "execute_code",
         "upload_file", "download_file", "list_files", "file_read", "file_write",
     ],
+    # general: лёгкий набор без дорогого MCP — экономия токенов на схемах.
+    "general": ["load_skill"],
 }
 
 def filter_tools_for_skill(all_tool_funcs, skill_name: str):

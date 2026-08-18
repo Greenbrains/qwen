@@ -1,139 +1,189 @@
-# ============================================================
-# orchestrator.py — Мультиагентный оркестратор (v2.3)
-#
-# Управляет историей, маршрутизацией, оценкой результатов и жизненным циклом субагентов.
-# Роль: принять запрос пользователя, декомпозировать его, выбрать навык(и),
-# СГЕНЕРИРОВАТЬ системный промпт для агента-исполнителя и запустить его.
-# Исполнители имеют СВОИ скиллы (ограниченный набор инструментов из
-# SKILL_TOOLSETS) — оркестратор лишь диктует им инструкцию (system prompt).
-#
-# Оркестратор сам инструментов предметной области не имеет — он «менеджер».
-# ============================================================
+"""
+orchestrator.py — Мультиагентный оркестратор (v2.4)
 
+Роль: «менеджер». Принимает запрос, выбирает исполнителя, запускает его.
+Своих предметных инструментов не имеет.
+
+Ключевые оптимизации v2.4 (экономия токенов):
+1. Трёхступенчатый роутинг «дёшево → дорого»:
+     keyword  →  sticky (тот же агент)  →  LLM (последний резерв).
+   LLM-вызов роутинга случается РЕДКО, а не на каждый запрос.
+2. История хранится ОТДЕЛЬНО ПО КАЖДОМУ АГЕНТУ. Субагент видит только свой
+   контекст (без чужих system-промптов) — меньше токенов, нет путаницы.
+3. Агенты кэшируются и переиспользуются между ходами (не пересобираются).
+4. Учёт токенов проброшен в каждого субагента (общий UsageTracker).
+"""
 from __future__ import annotations
 import logging
-import re
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 from agent_builder import AsyncAgentBuilder
+from usage import UsageTracker
+
+if TYPE_CHECKING:
+    from agent import Agent 
 
 logger = logging.getLogger("agent.orchestrator")
 
-# Простая эвристика для быстрого роутинга без затрат на LLM
+# Быстрый бесплатный роутинг по ключевым словам: агент -> триггеры.
 _KEYWORD_ROUTES = {
-    "rail": ("электрич", "поезд", "жд", "ж/д", "ржд", "плацкарт", "купе", "сапсан", "ласточк", "вокзал"),
-    "avia": ("самол", "авиа", "рейс", "перелет", "перелёт", "аэропорт", "лоукостер", "чартер"),
-    "hotels": ("отел", "гостиниц", "апартамент", "хостел", "заселен", "заезд", "проживан"),
-    "web": ("найди в интернет", "поиск", "актуальная информация", "новости"),
+    "touragent": (
+        "билет", "тур", "поезд", "жд", "ж/д", "ржд", "самол", "авиа", "рейс",
+        "перелет", "перелёт", "отел", "гостиниц", "электрич", "автобус",
+        "как добраться", "аэропорт", "вокзал", "заселен", "проживан", "сапсан",
+    ),
+    "marketingskills": (
+        "маркетинг", "конкурент", "seo", "позиционир", "цел", "аудитор",
+        "продвижен", "лендинг", "копирайт", "воронк", "оффер", "icp", "growth",
+    ),
 }
+
+# Явные сигналы «переключи меня» — сбрасывают липкость (sticky).
+_SWITCH_HINTS = ("вместо этого", "другой вопрос", "смени тему", "теперь про")
 
 
 class AsyncOrchestrator:
-    """
-    Manager class that routes user requests to the most appropriate specialized agent.
-    """
-    def __init__(self, builder: AsyncAgentBuilder, available_agents: Dict[str, Dict]):
+    """Маршрутизатор запросов к специализированным агентам."""
+
+    def __init__(
+        self,
+        builder: AsyncAgentBuilder,
+        available_agents: Dict[str, Dict],
+        usage: Optional[UsageTracker] = None,
+    ):
         """
-        Description: Initializes the Orchestrator with a builder and agent configurations.
-        Input data:
-            - builder (AsyncAgentBuilder): The factory for creating agent instances.
-            - available_agents (Dict[str, Dict]): Configuration dictionary of available agents.
-        Output: None (Initializes instance attributes).
+        Description: Инициализирует оркестратор.
+        Input:
+            - builder (AsyncAgentBuilder): фабрика агентов.
+            - available_agents (Dict): конфигурация доступных агентов.
+            - usage (UsageTracker): общий счётчик токенов.
+        Output: None.
         """
         self.builder = builder
         self.agents_config = available_agents
-        self.history: List[Dict] = []
+        self.usage = usage or UsageTracker()
 
-    def _keyword_route(self, user_input: str) -> Optional[str]:
-        """
-        Description: Performs fast, rule-based routing using keyword matching.
-        Input data:
-            - user_input (str): The raw user query.
-        Output: Optional[str]: The matched agent name, or None if no match.
-        """
-        text = user_input.lower()
+        self._last_agent: Optional[str] = None          # для sticky-роутинга
+        self._agents: Dict[str, "Agent"] = {}           # кэш собранных агентов
+        self._histories: Dict[str, List[Dict]] = {}     # история ПО КАЖДОМУ агенту
+
+    # ------------------------------------------------------------------
+    # Роутинг: дёшево → дорого
+    # ------------------------------------------------------------------
+    def _keyword_route(self, text: str) -> Optional[str]:
+        """Быстрый бесплатный роутинг по ключевым словам."""
+        low = text.lower()
         for agent_name, keywords in _KEYWORD_ROUTES.items():
-            if agent_name in self.agents_config and any(kw in text for kw in keywords):
+            if agent_name in self.agents_config and any(kw in low for kw in keywords):
                 return agent_name
         return None
 
-    async def _llm_route(self, user_input: str, last_agent: Optional[str]) -> str:
-        """
-        Description: Fallback LLM-based routing for complex or ambiguous queries.
-        Input data:
-            - user_input (str): The raw user query.
-            - last_agent (Optional[str]): The agent used in the previous turn (for context).
-        Output: str: The selected agent name (defaults to 'general' on failure).
-        """
-        agents_list = "\n".join(f"- {name}: {cfg['description']}" for name, cfg in self.agents_config.items())
-        valid_names = ", ".join(self.agents_config.keys())
-        
+    def _is_followup(self, text: str) -> bool:
+        """Похоже ли на продолжение текущей темы (короткая уточняющая реплика)?"""
+        low = text.lower()
+        if any(h in low for h in _SWITCH_HINTS):
+            return False
+        # Короткие реплики без явных ключевых слов трактуем как уточнение.
+        return len(text.split()) <= 12
+
+    async def _llm_route(self, user_input: str) -> str:
+        """Резервный LLM-роутинг (дорогой) — только когда дешёвые не сработали."""
+        agents_list = "\n".join(f"- {n}: {c['description']}" for n, c in self.agents_config.items())
+        valid = ", ".join(self.agents_config.keys())
         prompt = (
-            f"Ты — маршрутизатор. Выбери ОДНОГО специалиста из списка для запроса пользователя.\n"
+            "Ты — маршрутизатор. Выбери ОДНОГО специалиста для запроса.\n"
             f"Специалисты:\n{agents_list}\n"
-            f"Правила: отвечай СТРОГО одним словом из: {valid_names}.\n"
-            f"Запрос: {user_input}\n"
-            f"Специалист:"
+            f"Ответь СТРОГО одним словом из: {valid}.\n"
+            f"Запрос: {user_input}\nСпециалист:"
         )
-        
         try:
             client = self.builder.get_llm_client()
             resp = await client.chat.completions.create(
                 model=self.builder.model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.0,
-                max_tokens=10,
+                max_tokens=8,
             )
+            self.usage.record("router", getattr(resp, "usage", None))
             ans = (resp.choices[0].message.content or "").strip().lower()
             for name in self.agents_config:
                 if name in ans:
                     return name
         except Exception as e:
-            logger.error(f"Ошибка LLM-роутинга: {e}")
-            
+            logger.error("Ошибка LLM-роутинга: %s", e)
         return "general"
 
-    async def run(self, user_input: str) -> Tuple[str, List[Dict]]:
-        """
-        Description: Main execution loop: routes request, builds agent, executes, and updates history.
-        Input data:
-            - user_input (str): The user's query.
-        Output: Tuple[str, List[Dict]]: The agent's response and the updated global history.
-        """
-        self.history.append({"role": "user", "content": user_input})
-        
-        # 1. Маршрутизация
-        last_agent = self.history[-3]["role"] if len(self.history) >= 3 and self.history[-3]["role"] != "system" else None
-        agent_name = self._keyword_route(user_input) or await self._llm_route(user_input, last_agent)
+    async def _route(self, user_input: str) -> str:
+        """Трёхступенчатый выбор агента: keyword → sticky → LLM."""
+        # 1) Ключевые слова — бесплатно и точно.
+        kw = self._keyword_route(user_input)
+        if kw:
+            if kw != self._last_agent:
+                logger.info("🧭 keyword-роутинг → %s", kw)
+            return kw
+
+        # 2) Липкость: продолжаем с тем же агентом, если это уточнение.
+        if self._last_agent and self._is_followup(user_input):
+            logger.info("🧭 sticky-роутинг → %s (продолжение темы, LLM не вызываем)", self._last_agent)
+            return self._last_agent
+
+        # 3) Дорогой резерв — LLM.
+        chosen = await self._llm_route(user_input)
+        logger.info("🧭 LLM-роутинг → %s", chosen)
+        return chosen
+
+    # ------------------------------------------------------------------
+    # Ленивое получение/сборка агента (с кэшированием)
+    # ------------------------------------------------------------------
+    async def _get_agent(self, agent_name: str) -> "Agent":
+        """Возвращает готового агента из кэша либо собирает его один раз."""
+        if agent_name in self._agents:
+            return self._agents[agent_name]
+
         config = self.agents_config.get(agent_name, self.agents_config.get("general", {}))
-        
-        logger.info(f"🧭 Оркестратор выбрал агента: {agent_name}")
-        
-        # 2. Сборка специализированного агента "на лету"
-        mcp_needed = {mcp: "mock_url" for mcp in config.get("mcp", [])} 
-        sub_agent = await self.builder.build(
+        mcp_needed = {mcp: "mock_url" for mcp in config.get("mcp", [])}
+        agent = await self.builder.build(
+            agent_name=agent_name,
             skill_name=config.get("skill", "general"),
             custom_system_prompt=config.get("system_prompt"),
             extra_tools=config.get("extra_tools", []),
             mcp_endpoints=mcp_needed,
+            usage=self.usage,
         )
-        
-        # 3. Выполнение задачи субагентом
-        response_text, updated_history = await sub_agent.run(user_input, history=list(self.history))
-        
-        # 4. Обновление глобальной истории
-        self.history = updated_history
-        
-        # Простая эвристика оценки: если агент просит уточнения, возвращаем управление пользователю
-        if "уточни" in response_text.lower() or "не хватает" in response_text.lower():
-            logger.info("🔄 Субагент запросил уточнение. Возврат управления пользователю.")
-            
-        return response_text, self.history
+        self._agents[agent_name] = agent
+        return agent
 
-    async def close(self):
+    # ------------------------------------------------------------------
+    # Главный вход
+    # ------------------------------------------------------------------
+    async def run(self, user_input: str) -> Tuple[str, str]:
         """
-        Description: Delegates resource cleanup to the underlying builder.
-        Input data: None.
-        Output: None.
+        Description: Маршрутизирует запрос, запускает агента, копит его историю.
+        Input:
+            - user_input (str): запрос пользователя.
+        Output:
+            - Tuple[str, str]: ответ агента и имя выбранного агента.
         """
+        agent_name = await self._route(user_input)
+        agent = await self._get_agent(agent_name)
+
+        # История ТОЛЬКО этого агента — чужие system-промпты не подмешиваются.
+        history = self._histories.get(agent_name)
+        response_text, updated = await agent.run(user_input, history=history)
+
+        self._histories[agent_name] = updated
+        self._last_agent = agent_name
+
+        # Токены за этот ход — в консоль (как любил одиночный агент).
+        logger.info(self.usage.turn_line(agent_name))
+
+        return response_text, agent_name
+
+    def clear(self) -> None:
+        """Сбрасывает историю всех агентов и липкость (команда 'clear')."""
+        self._histories.clear()
+        self._last_agent = None
+
+    async def close(self) -> None:
+        """Освобождает ресурсы через builder."""
         await self.builder.close()

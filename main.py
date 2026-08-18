@@ -1,46 +1,52 @@
 """
-main.py — точка входа в мультиагентную систему v2.3
+main.py — точка входа мультиагентной системы (v2.4)
+
+Единое место настройки логирования (консоль + файл) и учёта токенов.
+При выходе печатает итоговый отчёт по токенам за сессию.
 """
 import asyncio
 import os
 import sys
-import logging 
+import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
 # ============================================================
-# 1. ЦЕНТРАЛИЗОВАННАЯ НАСТРОЙКА ЛОГИРОВАНИЯ
-# Должна быть ВЫШЕ импортов модулей, чтобы они подхватили настройки
+# 1. ЦЕНТРАЛИЗОВАННОЕ ЛОГИРОВАНИЕ (до импортов модулей проекта)
 # ============================================================
 LOG_DIR = Path("log")
 LOG_DIR.mkdir(exist_ok=True)
 LOG_FILE = LOG_DIR / "agent_log.md"
 
-# Настраиваем корневой логгер (применяется ко всем модулям проекта)
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.DEBUG)
-root_logger.handlers.clear()  # Очищаем стандартные обработчики
+root_logger.handlers.clear()
 
-# Файловый обработчик (пишет всё от DEBUG и выше)
+# Файл: полный трейс (DEBUG) — включая TOKENS и TOOL RESULT.
 file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8", mode="a")
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter(
-    "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+    "%(asctime)s | %(levelname)-8s | %(name)-20s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 ))
 root_logger.addHandler(file_handler)
 
-# Консольный обработчик (выводит только WARNING и ERROR, чтобы не спамить)
+# Консоль: INFO — итерации, вызовы инструментов, роутинг, токены за ход.
 console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.WARNING) 
+console_handler.setLevel(logging.INFO)
 console_handler.setFormatter(logging.Formatter("%(message)s"))
 root_logger.addHandler(console_handler)
+
+# Приглушаем болтливые библиотеки.
+for noisy in ("httpx", "httpcore", "openai", "urllib3", "requests"):
+    logging.getLogger(noisy).setLevel(logging.WARNING)
 # ============================================================
 
 load_dotenv()
 
-from agent_builder import AsyncAgentBuilder
-from orchestrator import AsyncOrchestrator
+from agent_builder import AsyncAgentBuilder      # noqa: E402
+from orchestrator import AsyncOrchestrator       # noqa: E402
+from usage import UsageTracker                   # noqa: E402
 
 YANDEX_API_KEY = os.getenv("YANDEX_API_KEY")
 YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID")
@@ -53,74 +59,85 @@ AGENTS_CONFIG = {
         "description": "Поиск туров, авиа/жд билетов, отелей через MCP Туту",
         "skill": "touragent",
         "mcp": ["tutu"],
-        "extra_tools": []
+        "extra_tools": [],
     },
     "marketingskills": {
         "description": "Продуктовый маркетинг: анализ конкурентов, SEO, позиционирование",
         "skill": "marketingskills",
         "mcp": [],
-        "extra_tools": ["web_search", "execute_code", "file_write"]
+        "extra_tools": ["web_search", "execute_code", "file_write"],
     },
     "general": {
         "description": "Универсальный помощник для общих задач",
         "skill": "general",
         "mcp": [],
-        "extra_tools": []
-    }
+        "extra_tools": [],
+    },
 }
 
+
 async def run_interactive():
+    usage = UsageTracker()
     builder = AsyncAgentBuilder(
         api_key=YANDEX_API_KEY,
         base_url=BASE_URL,
         model=MODEL_URI,
-        skills_dir=".agents/skills"
+        skills_dir=".agents/skills",
     )
-    orchestrator = AsyncOrchestrator(builder=builder, available_agents=AGENTS_CONFIG)
-    
-    print("=" * 10)
-    print("🚀 MULTI-AGENT SYSTEM v2.3")
-    print("=" * 10)
+    orchestrator = AsyncOrchestrator(
+        builder=builder,
+        available_agents=AGENTS_CONFIG,
+        usage=usage,
+    )
+
+    print("=" * 52)
+    print("🚀 MULTI-AGENT SYSTEM v3.0")
+    print("=" * 52)
     print("📋 Специалисты:")
     for name, cfg in AGENTS_CONFIG.items():
         print(f"   • {name}: {cfg['description']}")
-    print("=" * 10)
-    print("💡 'exit' — выход, 'help' — справка")
-    print(f"📁 Логи: {LOG_DIR.absolute()}")
+    print("=" * 52)
+    print("💡 'exit' — выход | 'clear' — очистить историю | 'usage' — токены")
+    print(f"📁 Логи: {LOG_FILE.absolute()}")
     print()
-    
+
     try:
         while True:
             try:
                 user_input = input("👤 Вы: ").strip()
             except (KeyboardInterrupt, EOFError):
-                print("\n")
+                print()
                 break
-            
+
             if not user_input:
                 continue
-            if user_input.lower() in ["exit", "quit", "выход"]:
-                print("👋 До свидания!")
+            low = user_input.lower()
+            if low in ("exit", "quit", "выход"):
                 break
-            if user_input.lower() in ["help", "помощь", "?"]:
-                print("\n📖 Справка:")
-                print("  • Напишите запрос — Оркестратор выберет агента")
-                print("  • 'clear' — очистить историю")
-                print("  • 'exit' — завершить работу\n")
+            if low in ("help", "помощь", "?"):
+                print("\n📖 Просто напишите запрос — оркестратор выберет агента.")
+                print("   'clear' — очистить историю, 'usage' — токены, 'exit' — выход\n")
                 continue
-            if user_input.lower() == "clear":
-                orchestrator.history = []
-                print("🗑️ История очищена.\n")
+            if low == "clear":
+                orchestrator.clear()
+                print("🗑️  История очищена.\n")
                 continue
-            
-            try:
-                response, _ = await orchestrator.run(user_input)
-                # \n дает пустую строку после ввода пользователя, .strip() убирает лишние пробелы
-                print(f"\n🤖 Агент: {str(response).strip()}\n")
-            except Exception as e:
-                print(f"\n❌ Ошибка: {e}")
-    finally:
-        await orchestrator.close()
+            if low == "usage":
+                print("\n" + usage.report() + "\n")
+                continue
 
-if __name__ == "__main__":  # <--- ИСПРАВЛЕНО: было if name == "main":
+            try:
+                response, agent_name = await orchestrator.run(user_input)
+                print(f"\n🤖 [{agent_name}]: {str(response).strip()}\n")
+            except Exception as e:
+                logging.getLogger("agent.main").exception("Ошибка обработки запроса")
+                print(f"\n❌ Ошибка: {e}\n")
+    finally:
+        # Итоговый отчёт по токенам за сессию — то, чего не хватало.
+        print("\n" + usage.report())
+        await orchestrator.close()
+        print("👋 До свидания!")
+
+
+if __name__ == "__main__":
     asyncio.run(run_interactive())
