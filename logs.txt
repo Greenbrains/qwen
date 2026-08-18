@@ -1,0 +1,15 @@
+2026-08-18 17:06:20,060 - INFO - Session started
+2026-08-18 17:06:30,593 - INFO - User input: привет...
+2026-08-18 17:06:30,881 - ERROR - Error calling YandexGPT: 404 Client Error: Not Found for url: https://ai.api.cloud.yandex.net/v1
+2026-08-18 17:06:30,881 - ERROR - Critical error: 404 Client Error: Not Found for url: https://ai.api.cloud.yandex.net/v1
+2026-08-18 17:06:58,905 - INFO - User input: выход...
+2026-08-18 17:06:59,187 - ERROR - Error calling YandexGPT: 404 Client Error: Not Found for url: https://ai.api.cloud.yandex.net/v1
+2026-08-18 17:06:59,187 - ERROR - Critical error: 404 Client Error: Not Found for url: https://ai.api.cloud.yandex.net/v1
+2026-08-18 17:07:14,792 - INFO - Session started
+2026-08-18 17:07:22,981 - INFO - User input: привет...
+2026-08-18 17:07:23,559 - ERROR - Error calling YandexGPT: 400 Client Error: Bad Request for url: https://llm.api.cloud.yandex.net/foundationModels/v1/completion
+2026-08-18 17:07:23,559 - ERROR - Critical error: 400 Client Error: Bad Request for url: https://llm.api.cloud.yandex.net/foundationModels/v1/completion
+2026-08-18 17:12:59,664 - INFO - Session started
+2026-08-18 17:13:08,982 - INFO - User input: привет...
+2026-08-18 17:13:09,621 - ERROR - Error calling YandexGPT: 400 Client Error: Bad Request for url: https://llm.api.cloud.yandex.net/foundationModels/v1/completion
+2026-08-18 17:13:09,621 - ERROR - Critical error: 400 Client Error: Bad Request for url: https://llm.api.cloud.yandex.net/foundationModels/v1/completion

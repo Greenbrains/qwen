@@ -1,187 +1,256 @@
-#!/usr/bin/env python3
-"""
-Tutu Travel Agent v4.0 — Мультиагентная система с каталогом скиллов.
-Версия: main_v4.0
+# main.py
+# Version: main_v4.0
+# Description: Orchestrator for Multi-Agent System with Skills Catalog (YandexGPT backend)
+# Features: Skills loading, Token logging, Dynamic context, YandexGPT integration
 
-Запуск:
-    python main.py [--mode console]
-
-Логирование:
-    - В файл logs.txt (с подсчётом токенов и времени)
-    - В консоль не выводится
-"""
-from __future__ import annotations
-import asyncio
-import logging
+import os
 import sys
+import json
+import time
+import logging
 from datetime import datetime
-from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict, Any
+from dotenv import load_dotenv
+from openai import OpenAI
 
-from config import get_settings
-from agents.specs import DEFAULT_TEAM
-from agents.orchestrator import AsyncOrchestrator
-from client.memory import MemoryStore
+# Загрузка переменных окружения
+load_dotenv()
 
-# ======================================================================
-# Настройка логгирования (только в файл, без консоли)
-# ======================================================================
-LOG_FILE = "logs.txt"
+# --- КОНФИГУРАЦИЯ ---
+API_KEY = os.getenv("YANDEX_API_KEY")
+FOLDER_ID = os.getenv("YANDEX_FOLDER_ID")
 
-def setup_logging() -> logging.Logger:
-    """Настраивает логгирование в файл с подсчётом токенов и времени."""
-    logger = logging.getLogger("travel_agent")
-    logger.setLevel(logging.DEBUG)
-    
-    # Очищаем существующие обработчики
+
+# --- ЛОГГИРОВАНИЕ ---
+LOG_FILE = os.getenv("LOG_FILE", "logs.txt")
+
+# Настройка логгера: только в файл, без консоли
+logger = logging.getLogger("TutuAgent_v4")
+logger.setLevel(logging.INFO)
+
+# Очистка старых хендлеров
+if logger.hasHandlers():
     logger.handlers.clear()
-    
-    # File handler — только в файл
-    file_handler = logging.FileHandler(LOG_FILE, mode="a", encoding="utf-8")
-    file_handler.setLevel(logging.DEBUG)
-    
-    formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
-    )
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-    
-    return logger
 
+file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8')
+file_handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
-# ======================================================================
-# Консольный интерфейс
-# ======================================================================
-class ConsoleCLI:
-    """Простой консольный чат с агентом."""
-    
-    def __init__(self, logger: logging.Logger):
-        self.logger = logger
-        self.settings = get_settings()
-        self.memory = MemoryStore(db_path="data/memory.db")
-        self.orchestrator: Optional[AsyncOrchestrator] = None
-        self.history = []
-        self.last_agent = None
-        
-    async def init(self):
-        """Инициализация оркестратора."""
-        self.orchestrator = AsyncOrchestrator(
-            specs=DEFAULT_TEAM,
-            settings=self.settings,
-            memory=self.memory
+# --- МОДЕЛИ ---
+MODEL_ROUTER = os.getenv("YANDEX_MODEL_ROUTER", "yandexgpt-lite")
+MODEL_AGENT = os.getenv("YANDEX_MODEL_AGENT", "yandexgpt")
+
+class YandexGPTClient:
+    """Клиент для работы с YandexGPT через OpenAI-совместимый API"""
+    def __init__(self, api_key: str, folder_id: str):
+        self.folder_id = folder_id
+        # Используем официальный OpenAI-совместимый эндпоинт Яндекса
+        self.client = OpenAI(
+            api_key=api_key,
+            base_url="https://ai.api.cloud.yandex.net/v1",
+            project=folder_id,
         )
-        self.logger.info("🚀 Travel Agent v4.0 запущен")
-        self.logger.info(f"📋 Доступные агенты: {', '.join(self.orchestrator.team)}")
-        
-    async def process_query(self, user_input: str) -> str:
-        """Обработка запроса пользователя."""
-        if not self.orchestrator:
-            await self.init()
-        
-        start_time = datetime.now()
+
+    def generate(self, messages: List[Dict], model: str = "yandexgpt-lite", temperature: float = 0.7, max_tokens: int = 2000) -> tuple[str, int, int]:
+        """
+        Генерация ответа. Возвращает (text, input_tokens, output_tokens)
+        """
+        model_uri = f"gpt://{self.folder_id}/{model}"
+        start_time = time.time()
         
         try:
-            response, new_history, tools_used, agent_name = await self.orchestrator.run(
-                user_input=user_input,
-                history=list(self.history),
-                last_agent=self.last_agent,
-                user_alias="user"
+            response = self.client.chat.completions.create(
+                model=model_uri,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
             )
             
-            self.history = new_history
-            self.last_agent = agent_name
+            result_text = response.choices[0].message.content or ""
             
-            elapsed = (datetime.now() - start_time).total_seconds()
-            self.logger.info(f"⏱️ Обработка заняла {elapsed:.2f}s | Агент: {agent_name} | Инструменты: {len(tools_used)}")
+            # Получение токенов (если API их вернул)
+            input_tokens = getattr(response.usage, 'prompt_tokens', 0) if response.usage else 0
+            output_tokens = getattr(response.usage, 'completion_tokens', 0) if response.usage else 0
             
-            return response
+            duration = time.time() - start_time
+            logger.info(f"Model: {model} | In: {input_tokens} | Out: {output_tokens} | Time: {duration:.2f}s")
+            
+            return result_text, input_tokens, output_tokens
             
         except Exception as e:
-            self.logger.error(f"❌ Ошибка обработки запроса: {e}", exc_info=True)
-            return f"Произошла ошибка: {e}"
-    
-    async def close(self):
-        """Закрытие ресурсов."""
-        if self.orchestrator:
-            await self.orchestrator.close()
-        if self.memory:
-            self.memory.close()
-        self.logger.info("🛑 Travel Agent остановлен")
+            logger.error(f"Error calling YandexGPT: {str(e)}")
+            raise
 
+class SkillsCatalog:
+    """Управление каталогом навыков (Skills Catalog)"""
+    
+    def __init__(self):
+        self.skills_dir = "skills"
+        self.loaded_skill: Optional[Dict] = None
+        self.catalog_path = os.path.join(self.skills_dir, "catalog.md")
+        
+    def load_catalog(self) -> str:
+        """Читает файл каталога и возвращает его содержимое для промпта"""
+        if not os.path.exists(self.catalog_path):
+            return "Каталог навыков не найден."
+        
+        with open(self.catalog_path, 'r', encoding='utf-8') as f:
+            return f.read()
+            
+    def load_skill(self, skill_name: str) -> Optional[Dict]:
+        """Загружает конкретный навык по имени"""
+        skill_file = os.path.join(self.skills_dir, f"{skill_name}.md")
+        if not os.path.exists(skill_file):
+            logger.warning(f"Skill '{skill_name}' not found.")
+            return None
+            
+        with open(skill_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+            
+        # Парсинг простого формата: имя, описание, инструкция
+        # В реальной системе можно использовать более сложный парсер
+        self.loaded_skill = {
+            "name": skill_name,
+            "content": content
+        }
+        logger.info(f"Loaded skill: {skill_name}")
+        return self.loaded_skill
 
-async def chat_loop():
-    """Основной цикл консольного чата."""
-    logger = setup_logging()
-    cli = ConsoleCLI(logger)
+class AgentOrchestrator:
+    """Основной оркестратор системы"""
     
-    print("=" * 60)
-    print("🧳 Tutu Travel Agent v4.0 — Консольный режим")
-    print("=" * 60)
-    print("Команды:")
-    print("  /help  — показать справку")
-    print("  /clear — очистить историю")
-    print("  /log   — показать путь к файлу логов")
-    print("  /exit  — выход")
-    print("=" * 60)
-    
-    await cli.init()
-    
-    try:
+    def __init__(self):
+        if not API_KEY or not FOLDER_ID:
+            raise ValueError("Отсутствуют YANDEX_API_KEY или YANDEX_FOLDER_ID в .env")
+            
+        self.client = YandexGPTClient(API_KEY, FOLDER_ID)
+        self.skills = SkillsCatalog()
+        self.history: List[Dict] = []
+        self.current_skill_context = ""
+        
+        # Системный промпт роутера
+        self.router_system_prompt = """
+Ты - Роутер (Router) в мультиагентной системе.
+Твоя задача: определить намерение пользователя и выбрать подходящий навык (Skill) из Каталога.
+Если пользователь хочет подобрать путешествие (билеты, отели, туры) -> выбери 'touragent'.
+Если пользователь хочет маркетинговый анализ, копирайтинг, SEO -> выбери 'marketingskills'.
+Если запрос не подходит ни под один навык -> верни 'general'.
+
+Ответ должен быть ТОЛЬКО именем навыка (например: touragent), без лишних слов.
+"""
+        # Базовый системный промпт агента (заполняется динамически)
+        self.agent_base_prompt = """
+Ты - специализированный ИИ-ассистент.
+Твоя задача: выполнить запрос пользователя, строго следуя инструкциям загруженного навыка.
+Используй инструменты только так, как описано в навыке.
+Экономь токены: не запрашивай лишние данные, используй компактные ответы.
+"""
+
+    def route_request(self, user_message: str) -> str:
+        """Определяет нужный навык"""
+        catalog_content = self.skills.load_catalog()
+        messages = [
+            {"role": "system", "content": f"{self.router_system_prompt}\n\nДоступные навыки:\n{catalog_content}"},
+            {"role": "user", "content": user_message}
+        ]
+        
+        response, _, _ = self.client.generate(messages, model=MODEL_ROUTER, temperature=0.0)
+        return response.strip().lower()
+
+    def process_with_skill(self, skill_name: str, user_message: str):
+        """Обрабатывает запрос с использованием конкретного навыка"""
+        skill_data = self.skills.load_skill(skill_name)
+        if not skill_data:
+            return "Ошибка: Навык не найден. Попробуйте другой запрос."
+        
+        # Формируем контекст навыка
+        system_instruction = f"{self.agent_base_prompt}\n\nИНСТРУКЦИЯ НАВЫКА ({skill_name}):\n{skill_data['content']}"
+        
+        # Добавляем историю (с ограничением keep_last_turns)
+        # Для простоты берем последние 5 сообщений + текущее
+        context_messages = self.history[-10:] if len(self.history) > 10 else self.history
+        
+        messages = [
+            {"role": "system", "content": system_instruction},
+            *context_messages,
+            {"role": "user", "content": user_message}
+        ]
+        
+        response, in_tok, out_tok = self.client.generate(messages, model=MODEL_AGENT, temperature=0.7)
+        
+        # Обновляем историю
+        self.history.append({"role": "user", "content": user_message})
+        self.history.append({"role": "assistant", "content": response})
+        
+        return response
+
+    def chat_loop(self):
+        """Основной цикл чата"""
+        print("="*60)
+        print("🧳 Tutu Travel Agent v4.0 — Консольный режим (YandexGPT)")
+        print("="*60)
+        print("Команды: /help, /clear, /log, /exit")
+        print("="*60)
+        
+        logger.info("Session started")
+        
         while True:
             try:
                 user_input = input("\n👤 Вы: ").strip()
-            except (EOFError, KeyboardInterrupt):
-                print("\n")
+                
+                if not user_input:
+                    continue
+                
+                if user_input.lower() == "/exit":
+                    logger.info("Session ended by user")
+                    break
+                elif user_input.lower() == "/help":
+                    print("Доступные команды: /help, /clear, /log, /exit")
+                    print("Просто напишите запрос, например: 'Подбери тур в Сочи'")
+                    continue
+                elif user_input.lower() == "/clear":
+                    self.history = []
+                    print("🗑️ История очищена.")
+                    logger.info("History cleared")
+                    continue
+                elif user_input.lower() == "/log":
+                    abs_path = os.path.abspath(LOG_FILE)
+                    print(f"📄 Логи сохраняются в: {abs_path}")
+                    continue
+                
+                # Логирование входа
+                logger.info(f"User input: {user_input[:50]}...")
+                
+                # 1. Роутинг
+                print("🤖 Анализ запроса...")
+                skill_name = self.route_request(user_input)
+                logger.info(f"Routed to skill: {skill_name}")
+                
+                # 2. Выполнение
+                print(f"🤖 Активация навыка: {skill_name}...")
+                response = self.process_with_skill(skill_name, user_input)
+                
+                print(f"🤖 Агент: {response}")
+                
+            except KeyboardInterrupt:
+                print("\n👋 Принудительный выход.")
                 break
-            
-            if not user_input:
-                continue
-            
-            cmd = user_input.lower()
-            if cmd in ("/exit", "/quit", "/q"):
-                break
-            elif cmd == "/help":
-                print("📋 Доступные команды: /help, /clear, /log, /exit")
-                continue
-            elif cmd == "/clear":
-                cli.history = []
-                cli.last_agent = None
-                print("🗑️ История очищена")
-                continue
-            elif cmd == "/log":
-                log_path = Path(LOG_FILE).resolve()
-                print(f"📄 Файл логов: {log_path}")
-                continue
-            
-            # Обработка запроса
-            print("🤖 Агент печатает...", end="\r")
-            response = await cli.process_query(user_input)
-            print(" " * 50, end="\r")  # Очистить строку
-            print(f"🤖 Агент: {response}")
-            
-    finally:
-        await cli.close()
-
-
-def main():
-    """Точка входа."""
-    # Проверка аргументов командной строки
-    mode = "console"
-    if len(sys.argv) > 1 and sys.argv[1] in ("console", "api", "websocket"):
-        mode = sys.argv[1]
-    
-    if mode != "console":
-        print(f"⚠️ Режим '{mode}' пока не поддерживается в v4.0. Используйте console.")
-        mode = "console"
-    
-    # Запуск основного цикла
-    if mode == "console":
-        asyncio.run(chat_loop())
-    else:
-        print(f"❌ Неизвестный режим: {mode}")
-        sys.exit(1)
-
+            except Exception as e:
+                error_msg = str(e)
+                print(f"🤖 Агент: Произошла ошибка: {error_msg}")
+                logger.error(f"Critical error: {error_msg}")
 
 if __name__ == "__main__":
-    main()
+    try:
+        app = AgentOrchestrator()
+        app.chat_loop()
+    except ValueError as ve:
+        print(f"❌ Ошибка конфигурации: {ve}")
+        print("Проверьте файл .env и наличие ключей YANDEX_API_KEY и YANDEX_FOLDER_ID")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Критическая ошибка запуска: {e}")
+        sys.exit(1)
+
