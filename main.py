@@ -1,104 +1,77 @@
-"""
-Tutu Travel Agent — точка входа.
-Примеры:
-python main.py --mode console                        # мультиагент, Chat Completions
-python main.py --mode console --api-type responses   # мультиагент, Responses API
-python main.py --mode api --host 0.0.0.0 --port 8000
-"""
-
-import argparse
-import logging
+﻿import os
 import sys
-from logging.handlers import RotatingFileHandler
+from pathlib import Path
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, JSONResponse
+from contextlib import asynccontextmanager
+from pydantic import BaseModel
 
+# Модель данных для чата
+class ChatRequest(BaseModel):
+    message: str
+    history: list = []
+    context: dict = {}
 
-def setup_logging(log_file: str = "logs.txt") -> None:
-    """
-    Настройка логирования с ротацией файла.
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("🚀 Green Brain Travel Agent Starting...")
+    # Здесь можно инициализировать клиента агента
+    yield
+    print("🛑 Service Stopping...")
+
+app = FastAPI(title="Green Brain Travel Agent", lifespan=lifespan)
+
+# Настройка путей к статике и шаблонам
+# Ищем папку interfaces/web или просто web в корне проекта
+BASE_DIR = Path(__file__).resolve().parent
+WEB_DIR = BASE_DIR / "interfaces" / "web"
+if not WEB_DIR.exists():
+    WEB_DIR = BASE_DIR / "web"
+if not WEB_DIR.exists():
+    WEB_DIR = BASE_DIR # Фоллбэк на корень
+
+STATIC_DIR = WEB_DIR / "static"
+TEMPLATES_DIR = WEB_DIR / "templates"
+
+# Подключаем статику если есть папка
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+# Настраиваем шаблоны
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR) if TEMPLATES_DIR.exists() else str(WEB_DIR))
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/agent", response_class=HTMLResponse)
+async def agent_page(request: Request):
+    """Страница выбора направлений и чата"""
+    return templates.TemplateResponse("agent.html", {
+        "request": request, 
+        "title": "Travel Agent - Green Brain"
+    })
+
+@app.post("/api/chat")
+async def chat_endpoint(req: ChatRequest):
+    """Эндпоинт для общения с агентом"""
+    # ЗАГЛУШКА: Здесь нужно вызвать реальную логику вашего агента
+    # Например: response = await agent.process(req.message, req.context)
     
-    - Файловый лог (DEBUG): до 5 файлов по 5 МБ каждый.
-    - Консоль: ОТКЛЮЧЕНА (только финальный результат выводится вручную).
-    """
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG)
+    country = req.context.get("country", "миром")
+    user_msg = req.message
     
-    # Очистить старые обработчики (если логирование уже было настроено).
-    root_logger.handlers.clear()
+    # Имитация ответа агента
+    response_text = f"Отличный выбор! Для направления '{country}' я могу подобрать туры. Вы спросили: '{user_msg}'. Сейчас анализирую предложения..."
     
-    # FileHandler с ротацией (5 файлов по 5 МБ).
-    file_handler = RotatingFileHandler(
-        log_file,
-        maxBytes=5 * 1024 * 1024,  # 5 МБ
-        backupCount=5,
-        encoding='utf-8',  # явно UTF-8 для файла
-    )
-    file_handler.setLevel(logging.DEBUG)
-    file_formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    file_handler.setFormatter(file_formatter)
-    
-    # Добавляем ТОЛЬКО файловый лог, консоль отключена
-    root_logger.addHandler(file_handler)
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Tutu Travel Agent")
-    parser.add_argument(
-        "--mode",
-        choices=["console", "api", "websocket"],
-        default="console",
-        help="Режим запуска (по умолчанию: console)",
-    )
-    parser.add_argument("--host", default=None, help="Хост для API (по умолчанию из настроек)")
-    parser.add_argument("--port", type=int, default=None, help="Порт для API (по умолчанию из настроек)")
-    parser.add_argument(
-        "--api-type",
-        choices=["openai", "responses"],
-        default="openai",
-        help="API для LLM: openai (Chat Completions) или responses (Responses API)",
-    )
-    return parser.parse_args()
-
-
-def run_console(api_type: str) -> int:
-    """Запускает консольный чат (оркестратор сам выбирает специалистов)."""
-    from interfaces.cli import main as cli_main
-    return cli_main(api_type=api_type)
-
-
-def run_api(host: str, port: int) -> int:
-    """Запускает FastAPI-сервер."""
-    import uvicorn
-    from config import get_settings
-    from interfaces.api.app import app
-
-    settings = get_settings()
-    host = host or settings.api_host
-    port = port or settings.api_port
-
-    print(f"🚀 Запуск FastAPI на http://{host}:{port}")
-    print(f"   REST:   POST /chat, GET /health, GET /tools")
-    print(f"   WebSocket: /ws (текст и голос)")
-    
-    uvicorn.run(app, host=host, port=port)
-    return 0
-
-
-def main() -> int:
-    # Настройка логирования ДО всех остальных операций.
-    setup_logging("logs.txt")
-    
-    args = parse_args()
-    if args.mode == "console":
-        return run_console(args.api_type)
-    elif args.mode in ("api", "websocket"):
-        return run_api(args.host, args.port)
-    else:
-        print(f"❌ Неизвестный режим: {args.mode}")
-        return 1
-
+    return {
+        "response": response_text,
+        "status": "success",
+        "context": {"country": country}
+    }
 
 if __name__ == "__main__":
-    sys.exit(main())
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
