@@ -1,22 +1,12 @@
 """
-📋 agent_tools.py — фабрика инструментов и утилиты схем.
-
-Содержит:
-- Декоратор @tool и автогенерацию JSON-схем из type hints.
-- Локальные инструменты: load_skill, bash_execute, file_read, file_write.
-- YandexTools: Files API, Code Interpreter, Image Generation, Web Search.
-- Фабрику create_all_tools() с гибким подключением MCP (proxy / expand).
-- Реестр скиллов ↔ разрешённых инструментов (для мультиагентности).
-
-v2 изменения:
-- MCP подключается в экономном режиме "proxy" (один tutu_call вместо 16 схем).
-- Добавлен build_skill_prompt() и SKILL_TOOLSETS для оркестратора.
+📋 agent_tools.py — фабрика инструментов (Async v2.3)
+Содержит декоратор @tool, локальные и Yandex-инструменты, реестр скиллов.
 """
+import asyncio
 import inspect
 import json
 import logging
 import re
-import subprocess
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
@@ -25,36 +15,40 @@ from typing import Annotated, get_args, get_origin, get_type_hints
 logger = logging.getLogger("agent.tools")
 
 # ============================================================
-# Утилиты форматирования (для трейсинга в agent.py)
+# Утилиты форматирования
 # ============================================================
 def _short_args(args: dict, max_total: int = 60) -> str:
-    if not args:
+    """Formats dictionary arguments into a compact string for logging."""
+    if not args: 
         return ""
-    parts = []
-    for k, v in args.items():
-        sv = str(v)
-        if len(sv) > 30:
-            sv = sv[:27] + "..."
-        parts.append(f"{k}={sv!r}")
+    parts = [f"{k}={str(v)[:27]+'...' if len(str(v))>30 else str(v)!r}" for k, v in args.items()]
     s = ", ".join(parts)
     return s if len(s) <= max_total else s[: max_total - 3] + "..."
 
-
 def _short_text(text: str, limit: int = 120) -> str:
-    if not text:
+    """Truncates text to a single line with a specified character limit."""
+    if not text: 
         return ""
     one_line = " ".join(text.split())
     return one_line if len(one_line) <= limit else one_line[:limit] + "…"
-
 
 # ============================================================
 # 1. Декоратор @tool + генерация схем
 # ============================================================
 def tool(func=None, *, name: str = None, description: str = None):
+    """
+    Description: Decorator to register a function as an LLM-callable tool and generate its JSON schema.
+    Input data:
+        - func: The target function.
+        - name (str): Optional override for the tool name.
+        - description (str): Optional override for the tool description.
+    Output: Callable: The wrapped function with attached _tool_schema, _tool_name, and _tool_description.
+    """
     def decorator(fn):
         tool_name = name or fn.__name__
         tool_description = description or (fn.__doc__ or "").strip()
         parameters_schema = _extract_parameters_schema(fn)
+        
         tool_schema = {
             "type": "function",
             "function": {
@@ -63,69 +57,77 @@ def tool(func=None, *, name: str = None, description: str = None):
                 "parameters": parameters_schema,
             },
         }
-
+        
         @wraps(fn)
-        def wrapper(*args, **kwargs):
-            return fn(*args, **kwargs)
-
+        async def wrapper(*args, **kwargs):
+            return await fn(*args, **kwargs)
+            
         for obj in (fn, wrapper):
             obj._tool_schema = tool_schema
             obj._tool_name = tool_name
             obj._tool_description = tool_description
         return wrapper
-
+        
     return decorator(func) if func is not None else decorator
 
-
 def _extract_parameters_schema(fn) -> dict:
+    """
+    Description: Extracts JSON schema from function signature and type hints.
+    Input data: fn (Callable): The target function.
+    Output: dict: JSON schema dictionary for the function parameters.
+    """
     sig = inspect.signature(fn)
     try:
         hints = get_type_hints(fn, include_extras=True)
     except Exception:
         hints = {}
-
+        
     properties, required = {}, []
     for param_name, param in sig.parameters.items():
         if param_name in ("self", "cls", "client"):
             continue
+            
         param_type = hints.get(param_name, str)
         param_description = ""
         actual_type = param_type
+        
         if hasattr(param_type, "__metadata__"):
-            actual_type = param_type.__args__[0]
-            if param_type.__metadata__:
+            actual_type = get_args(param_type)[0]
+            if getattr(param_type, "__metadata__", None):
                 param_description = param_type.__metadata__[0]
+                
         prop_schema = {"type": _python_type_to_json(actual_type)}
         if param_description:
             prop_schema["description"] = param_description
         properties[param_name] = prop_schema
+        
         if param.default is inspect.Parameter.empty:
             required.append(param_name)
-
+            
     schema = {"type": "object", "properties": properties}
     if required:
         schema["required"] = required
     return schema
 
-
 def _python_type_to_json(python_type) -> str:
+    """Maps Python type hints to JSON schema types."""
     origin = get_origin(python_type)
     if origin is not None:
         args = get_args(python_type)
         non_none = [a for a in args if a is not type(None)]
         if len(non_none) == 1:
             return _python_type_to_json(non_none[0])
+            
     type_map = {str: "string", int: "integer", float: "number", bool: "boolean", list: "array", dict: "object"}
     return type_map.get(python_type, "string")
 
-
 def collect_tools(*tool_functions) -> list:
+    """Extracts tool schemas from a list of decorated functions."""
     return [fn._tool_schema for fn in tool_functions if hasattr(fn, "_tool_schema")]
 
-
 def create_tool_router(*tool_functions) -> dict:
+    """Creates a name-to-function mapping for tool execution."""
     return {fn._tool_name: fn for fn in tool_functions if hasattr(fn, "_tool_name")}
-
 
 # ============================================================
 # 2. Скиллы (навыки)
@@ -133,8 +135,12 @@ def create_tool_router(*tool_functions) -> dict:
 SKILLS_ROOT = Path(".agents/skills")
 SKILLS_CATALOG_FILE = SKILLS_ROOT / "SKILL.md"
 
-
 def load_skills_catalog() -> str:
+    """
+    Description: Reads the main skills catalog file or lists available skill directories.
+    Input data: None.
+    Output: str: The catalog content or a formatted list of skill names.
+    """
     if SKILLS_CATALOG_FILE.exists():
         return SKILLS_CATALOG_FILE.read_text(encoding="utf-8")
     if SKILLS_ROOT.exists():
@@ -143,12 +149,16 @@ def load_skills_catalog() -> str:
             return "Обнаружены навыки (без описаний):\n" + "\n".join(f"- {n}" for n in names)
     return "Каталог навыков пуст."
 
-
 @tool
-def load_skill(
+async def load_skill(
     skill_name: Annotated[str, "Имя навыка из каталога, напр. 'touragent'. Пусто — вернуть каталог всех навыков."] = ""
 ) -> str:
-    """Загружает инструкцию навыка из .agents/skills/<name>/<name>.md. Без аргумента возвращает каталог."""
+    """
+    Description: Loads a specific skill instruction file or returns the full catalog.
+    Input data:
+        - skill_name (str): The name of the skill to load. Empty string returns the catalog.
+    Output: str: The markdown content of the skill or the catalog text.
+    """
     if not skill_name:
         return load_skills_catalog()
     skill_path = SKILLS_ROOT / skill_name / f"{skill_name}.md"
@@ -156,60 +166,75 @@ def load_skill(
         return skill_path.read_text(encoding="utf-8")
     return f"❌ Навык '{skill_name}' не найден. Вызови load_skill() без аргумента для списка."
 
-
 # ============================================================
-# 3. Локальные инструменты
+# 3. Локальные инструменты (Async)
 # ============================================================
 @tool
-def bash_execute(command: Annotated[str, "Bash-команда для локального выполнения."]) -> str:
-    """Выполняет bash-команду локально и возвращает stdout/stderr."""
+async def bash_execute(command: Annotated[str, "Bash-команда для локального выполнения."]) -> str:
+    """
+    Description: Executes a bash command locally and returns stdout/stderr.
+    Input data:
+        - command (str): The shell command to execute.
+    Output: str: The command output or an error message.
+    """
     try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=60)
-        if result.returncode == 0:
-            return result.stdout or "✅ Выполнено успешно (без вывода)"
-        return f"❌ Ошибка (код {result.returncode}):\n{result.stderr}"
-    except subprocess.TimeoutExpired:
+        process = await asyncio.create_subprocess_shell(
+            command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60)
+        if process.returncode == 0:
+            return stdout.decode('utf-8').strip() or "✅ Выполнено успешно (без вывода)"
+        return f"❌ Ошибка (код {process.returncode}):\n{stderr.decode('utf-8')}"
+    except asyncio.TimeoutError:
         return "❌ Превышено время выполнения (60 секунд)"
     except Exception as e:
         return f"❌ Исключение: {str(e)}"
 
-
 @tool
-def file_read(file_path: Annotated[str, "Путь к локальному файлу для чтения."]) -> str:
-    """Читает содержимое локального файла и возвращает его текст."""
+async def file_read(file_path: Annotated[str, "Путь к локальному файлу для чтения."]) -> str:
+    """
+    Description: Reads the content of a local file.
+    Input data:
+        - file_path (str): The path to the file.
+    Output: str: The file content or an error message.
+    """
     path = Path(file_path)
     if path.exists():
         return path.read_text(encoding="utf-8")
     return f"❌ Файл не найден: {file_path}"
 
-
 @tool
-def file_write(
+async def file_write(
     file_path: Annotated[str, "Путь к локальному файлу для записи."],
     content: Annotated[str, "Содержимое для записи в файл."],
 ) -> str:
-    """Записывает содержимое в локальный файл, создавая директории при необходимости."""
+    """
+    Description: Writes content to a local file, creating directories if necessary.
+    Input data:
+        - file_path (str): The target file path.
+        - content (str): The text content to write.
+    Output: str: Confirmation message or error.
+    """
     path = Path(file_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
     return f"✅ Файл сохранён: {file_path}"
 
-
 # ============================================================
-# 4. Инструменты Яндекс AI Studio
+# 4. Инструменты Яндекс AI Studio (Async)
 # ============================================================
 class YandexTools:
-    """Инструменты, требующие OpenAI-клиент к Яндекс AI Studio."""
-
+    """Tools requiring an AsyncOpenAI client connected to Yandex AI Studio."""
     def __init__(self, client, model_name: str):
         self.client = client
         self.model_name = model_name
         self.output_dir = Path("output")
         self.output_dir.mkdir(exist_ok=True)
 
-    def _save_yandex_file(self, file_id: str, suggested_name: str = None) -> str:
+    async def _save_yandex_file(self, file_id: str, suggested_name: str = None) -> str:
+        """Helper to download and save a file from Yandex Files API."""
         try:
-            file_content = self.client.files.content(file_id)
+            file_content = await self.client.files.content(file_id)
             if suggested_name:
                 safe = Path(suggested_name).name
                 filename = f"{Path(safe).stem}_{file_id[:8]}{Path(safe).suffix}"
@@ -224,31 +249,43 @@ class YandexTools:
             return f"ERROR: {e}"
 
     @tool
-    def upload_file(
+    async def upload_file(
         self,
         local_path: Annotated[str, "Путь к локальному файлу для загрузки в Яндекс AI Studio"],
         purpose: Annotated[str, "'user_data' для Code Interpreter, 'assistants' для Vector Store"],
     ) -> str:
-        """Загружает файл в Яндекс AI Studio Files API и возвращает file_id."""
+        """
+        Description: Uploads a local file to Yandex AI Studio Files API.
+        Input data:
+            - local_path (str): Path to the local file.
+            - purpose (str): The intended use of the file.
+        Output: str: Upload confirmation with File ID and size.
+        """
         path = Path(local_path)
         if not path.exists():
             return f"❌ Файл не найден: {local_path}"
         try:
             with open(path, "rb") as f:
-                uploaded = self.client.files.create(file=f, purpose=purpose)
+                uploaded = await self.client.files.create(file=f, purpose=purpose)
             return f"✅ Файл загружен:\n- Имя: {path.name}\n- File ID: {uploaded.id}\n- Размер: {uploaded.bytes} bytes"
         except Exception as e:
             return f"❌ Ошибка загрузки: {str(e)}"
 
     @tool
-    def download_file(
+    async def download_file(
         self,
         file_id: Annotated[str, "Идентификатор файла в Files API"],
         local_path: Annotated[str, "Локальный путь для сохранения файла"],
     ) -> str:
-        """Скачивает файл из Яндекс AI Studio Files API по file_id."""
+        """
+        Description: Downloads a file from Yandex AI Studio Files API by file_id.
+        Input data:
+            - file_id (str): The Yandex file identifier.
+            - local_path (str): The destination path on the local filesystem.
+        Output: str: Success confirmation or error message.
+        """
         try:
-            file_content = self.client.files.content(file_id)
+            file_content = await self.client.files.content(file_id)
             path = Path(local_path)
             path.parent.mkdir(parents=True, exist_ok=True)
             with open(path, "wb") as f:
@@ -258,10 +295,14 @@ class YandexTools:
             return f"❌ Ошибка скачивания: {str(e)}"
 
     @tool
-    def list_files(self) -> str:
-        """Возвращает список всех загруженных файлов в Files API."""
+    async def list_files(self) -> str:
+        """
+        Description: Retrieves a list of all files uploaded to the Files API.
+        Input data: None.
+        Output: str: Formatted list of files with names, IDs, and sizes.
+        """
         try:
-            files = self.client.files.list()
+            files = await self.client.files.list()
             if not files.data:
                 return "📭 Список файлов пуст"
             result = "📋 Загруженные файлы:\n"
@@ -272,17 +313,23 @@ class YandexTools:
             return f"❌ Ошибка получения списка: {str(e)}"
 
     @tool
-    def execute_code(
+    async def execute_code(
         self,
         code: Annotated[str, "Python-код для выполнения в изолированном контейнере"],
         file_ids: Annotated[list, "Список file_id файлов, нужных для выполнения кода"] = None,
     ) -> str:
-        """Выполняет Python-код в изолированном контейнере Code Interpreter."""
+        """
+        Description: Executes Python code in an isolated Code Interpreter container.
+        Input data:
+            - code (str): The Python code to execute.
+            - file_ids (list): Optional list of file IDs to mount in the container.
+        Output: str: The execution output, logs, and paths to any generated files.
+        """
         try:
             container_config = {"type": "auto"}
             if file_ids:
                 container_config["file_ids"] = file_ids
-            response = self.client.responses.create(
+            response = await self.client.responses.create(
                 model=self.model_name,
                 instructions="Выполни этот Python-код и верни результат",
                 input=code,
@@ -302,7 +349,7 @@ class YandexTools:
                         if getattr(content, "annotations", None):
                             for ann in content.annotations:
                                 if ann.type == "container_file_citation":
-                                    lp = self._save_yandex_file(ann.file_id, ann.filename)
+                                    lp = await self._save_yandex_file(ann.file_id, ann.filename)
                                     if not lp.startswith("ERROR"):
                                         downloaded.append((ann.filename, lp))
             if downloaded:
@@ -314,38 +361,51 @@ class YandexTools:
             return f"❌ Ошибка выполнения: {str(e)}"
 
     @tool
-    def generate_image(
+    async def generate_image(
         self,
         prompt: Annotated[str, "Текстовое описание изображения для генерации"],
         size: Annotated[str, "Размер: '1024x1024', '1536x1024' или '1024x1536'"],
     ) -> str:
-        """Генерирует изображение и сохраняет его в output/."""
+        """
+        Description: Generates an image based on a text prompt and saves it locally.
+        Input data:
+            - prompt (str): The text description of the image.
+            - size (str): The desired image dimensions.
+        Output: str: Confirmation with the local file path and File ID.
+        """
         try:
-            response = self.client.responses.create(
+            response = await self.client.responses.create(
                 model=self.model_name, input=prompt,
                 tools=[{"type": "image_generation", "size": size}],
             )
             for item in response.output:
                 if item.type == "image_generation_call":
-                    local_path = self._save_yandex_file(item.result, "image.png")
+                    local_path = await self._save_yandex_file(item.result, "image.png")
                     return f"✅ Изображение сгенерировано\n\n**Локальный путь:** `{local_path}`\n**File ID:** `{item.result}`"
             return "❌ Изображение не было сгенерировано"
         except Exception as e:
             return f"❌ Ошибка генерации: {str(e)}"
 
     @tool
-    def web_search(
+    async def web_search(
         self,
         query: Annotated[str, "Поисковый запрос"],
         allowed_domains: Annotated[list, "До 5 доменов для ограничения поиска"] = None,
         search_context_size: Annotated[str, "Полнота контекста: 'low', 'medium' или 'high'"] = "medium",
     ) -> str:
-        """Ищет актуальную информацию в интернете через встроенный web_search Яндекса."""
+        """
+        Description: Searches the internet for up-to-date information using Yandex's built-in web search.
+        Input data:
+            - query (str): The search query.
+            - allowed_domains (list): Optional list of up to 5 domains to restrict the search.
+            - search_context_size (str): Context depth ('low', 'medium', or 'high').
+        Output: str: The search results summary and source URLs.
+        """
         try:
             tool_config = {"type": "web_search", "search_context_size": search_context_size}
             if allowed_domains:
                 tool_config["filters"] = {"allowed_domains": allowed_domains[:5]}
-            response = self.client.responses.create(
+            response = await self.client.responses.create(
                 model=self.model_name, input=query, tools=[tool_config], temperature=0.3
             )
             result_parts, sources = [], []
@@ -365,53 +425,54 @@ class YandexTools:
         except Exception as e:
             return f"❌ Ошибка поиска: {str(e)}"
 
-
 # ============================================================
-# 5. Реестр «навык → инструменты» (для мультиагентности)
+# 5. Реестр «навык → инструменты»
 # ============================================================
-# Оркестратор при запуске агента-исполнителя может ограничить его инструментарий
-# только релевантным набором — это ещё сильнее снижает расход токенов и уводит
-# модель от «соблазна» звать лишние инструменты.
 SKILL_TOOLSETS = {
-    # турагент: скиллы + локальные + прокси к Туту (без Yandex-инструментов)
     "touragent": ["load_skill", "tutu_call", "file_write", "file_read"],
-    # маркетинг: web_search + code interpreter + files
     "marketingskills": [
         "load_skill", "web_search", "execute_code",
         "upload_file", "download_file", "list_files", "file_read", "file_write",
     ],
 }
 
-
 def filter_tools_for_skill(all_tool_funcs, skill_name: str):
-    """Возвращает подмножество tool-функций, разрешённых для навыка.
-    Если навык неизвестен — возвращает все инструменты."""
+    """
+    Description: Filters the global tool list to only include those permitted for a specific skill.
+    Input data:
+        - all_tool_funcs: List of all available tool functions.
+        - skill_name (str): The target skill identifier.
+    Output: list: A filtered list of tool functions.
+    """
     allowed = SKILL_TOOLSETS.get(skill_name)
     if not allowed:
         return list(all_tool_funcs)
     allowed_set = set(allowed)
     return [fn for fn in all_tool_funcs if getattr(fn, "_tool_name", None) in allowed_set]
 
-
 # ============================================================
 # 6. Фабрика инструментов
 # ============================================================
 def create_all_tools(client=None, model_name: str = "yandexgpt/latest", mcp_client=None, mcp_mode: str = "proxy"):
-    """Создаёт список всех tool-функций для агента.
-
-    mcp_mode="proxy"  — один экономный tutu_call (по умолчанию);
-    mcp_mode="expand" — по функции на каждый MCP-инструмент.
+    """
+    Description: Aggregates and returns the complete list of tool functions for an agent.
+    Input data:
+        - client: The AsyncOpenAI client instance.
+        - model_name (str): The target model identifier.
+        - mcp_client: The initialized MCP client (optional).
+        - mcp_mode (str): The MCP integration mode (e.g., 'proxy').
+    Output: list: A combined list of basic, advanced, and MCP tool functions.
     """
     basic_tools = [load_skill, bash_execute, file_read, file_write]
-
     advanced_tools = []
+    
     if client:
         yt = YandexTools(client, model_name)
         advanced_tools = [
             yt.upload_file, yt.download_file, yt.list_files,
             yt.execute_code, yt.generate_image, yt.web_search,
         ]
-
+        
     mcp_tools = []
     if mcp_client:
         try:
@@ -420,5 +481,5 @@ def create_all_tools(client=None, model_name: str = "yandexgpt/latest", mcp_clie
             logger.info(f"✅ Подключено {len(mcp_tools)} MCP-обёрток (режим={mcp_mode})")
         except Exception as e:
             logger.warning(f"⚠️ Не удалось подключить MCP-инструменты: {e}")
-
+            
     return basic_tools + advanced_tools + mcp_tools
