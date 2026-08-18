@@ -273,3 +273,4 @@ class AsyncAgentBuilder:
         if self._owns_http_session and self._http_session is not None:
             await self._http_session.close()
             self._http_session = None
+

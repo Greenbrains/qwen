@@ -27,8 +27,9 @@ class Settings(BaseModel):
     """Единый объект конфигурации приложения."""
 
     # --- Yandex AI Studio (OpenAI-совместимый API) ---
+    # ИСПРАВЛЕНО: дефолт — "YANDEX_API_KEY" (имя переменной в .env), а не "august2026".
     yandex_api_key_env: str = Field(
-        default_factory=lambda: os.environ.get("YANDEX_API_KEY_ENV", "august2026"),
+        default_factory=lambda: os.environ.get("YANDEX_API_KEY_ENV", "YANDEX_API_KEY"),
         description="Имя переменной окружения, в которой лежит API-ключ",
     )
     yandex_folder_id: str = Field(
@@ -85,7 +86,6 @@ class Settings(BaseModel):
     )
 
     # --- Агент ---
-    # Основное имя поля — max_agent_iterations (совпадает с env MAX_AGENT_ITERATIONS).
     max_agent_iterations: int = Field(
         default_factory=lambda: int(os.environ.get("MAX_AGENT_ITERATIONS", "12")),
         description="Максимальное число итераций агентного цикла",
@@ -127,8 +127,10 @@ class Settings(BaseModel):
     # --- Свойства-хелперы ---
     @property
     def api_key(self) -> str:
-        """Возвращает API-ключ из переменной окружения."""
-        return os.environ.get(self.yandex_api_key_env, "")
+        """Возвращает API-ключ из переменной окружения (с фолбэком на YANDEX_API_KEY)."""
+        return os.environ.get(self.yandex_api_key_env, "") or os.environ.get(
+            "YANDEX_API_KEY", ""
+        )
 
     @property
     def max_iterations(self) -> int:

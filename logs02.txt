@@ -1,0 +1,527 @@
+15:35:34 | DEBUG   | asyncio | Using proactor: IocpProactor
+15:35:43 | DEBUG   | httpcore.connection | connect_tcp.started host='ai.api.cloud.yandex.net' port=443 local_address=None timeout=5.0 socket_options=None
+15:35:43 | DEBUG   | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000002547440BE00>
+15:35:43 | DEBUG   | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000025473BFCB00> server_hostname='ai.api.cloud.yandex.net' timeout=5.0
+15:35:43 | DEBUG   | httpcore.connection | start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x0000025474451310>
+15:35:43 | DEBUG   | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+15:35:43 | DEBUG   | httpcore.http11 | send_request_headers.complete
+15:35:43 | DEBUG   | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+15:35:43 | DEBUG   | httpcore.http11 | send_request_body.complete
+15:35:43 | DEBUG   | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+15:35:43 | DEBUG   | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'x-data-logging-enabled', b'true'), (b'date', b'Tue, 18 Aug 2026 12:35:44 GMT'), (b'content-length', b'402'), (b'x-server-trace-id', b'74cc16f0cb5aa100:9982120ff52dd29f:c0eaa6d1ae23b1f3:1'), (b'server', b'ycalb')])
+15:35:43 | DEBUG   | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+15:35:43 | DEBUG   | httpcore.http11 | receive_response_body.complete
+15:35:43 | DEBUG   | httpcore.http11 | response_closed.started
+15:35:43 | DEBUG   | httpcore.http11 | response_closed.complete
+15:35:43 | INFO    | travel_agent.orchestrator | 🧠 LLM-роутер ответил: ''
+15:35:43 | INFO    | travel_agent.orchestrator | ↩️ Фолбэк роутера → general
+15:35:43 | INFO    | travel_agent.orchestrator | 🧭 Роутер выбрал: general
+15:35:43 | INFO    | travel_agent.orchestrator | 🏗️ Создаю агента [general]
+15:35:43 | INFO    | mcp | MCP initialize...
+15:35:43 | DEBUG   | mcp | MCP POST: {"jsonrpc": "2.0", "id": "be26acca-64e2-4ab1-ae57-c9e35c8eba31", "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "tutu-travel-agent", "version": "2.0.0"}}}
+15:35:43 | DEBUG   | mcp | MCP response: status=200, len=11820
+15:35:43 | INFO    | mcp | ✅ MCP сессия установлена (stateless)
+15:35:43 | DEBUG   | mcp | MCP POST: {"jsonrpc": "2.0", "method": "notifications/initialized"}
+15:35:43 | DEBUG   | mcp | MCP response: status=202, len=0
+15:35:43 | DEBUG   | mcp | MCP notifications/initialized отправлен
+15:35:43 | DEBUG   | mcp | MCP POST: {"jsonrpc": "2.0", "id": "077989d9-d0f1-4f27-99e0-cfd0b434eb39", "method": "tools/list", "params": {}}
+15:35:43 | DEBUG   | mcp | MCP response: status=200, len=105853
+15:35:43 | INFO    | mcp | MCP tools/list: 16 инструментов
+15:35:43 | DEBUG   | travel_agent.tools.registry | ToolRegistry loaded 16 tools from MCP (no wrapper)
+15:35:43 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:35:43 | DEBUG   | travel_agent.orchestrator | AGENT LOOP START. User message: привет
+15:35:43 | DEBUG   | travel_agent.orchestrator | History length: 0
+15:35:43 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:35:43 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 1 ---
+15:35:43 | DEBUG   | httpcore.connection | connect_tcp.started host='ai.api.cloud.yandex.net' port=443 local_address=None timeout=5.0 socket_options=None
+15:35:43 | DEBUG   | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x0000025474604910>
+15:35:43 | DEBUG   | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x00000254744C22A0> server_hostname='ai.api.cloud.yandex.net' timeout=5.0
+15:35:43 | DEBUG   | httpcore.connection | start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000254743BA650>
+15:35:43 | DEBUG   | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+15:35:43 | DEBUG   | httpcore.http11 | send_request_headers.complete
+15:35:43 | DEBUG   | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+15:35:43 | DEBUG   | httpcore.http11 | send_request_body.complete
+15:35:43 | DEBUG   | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+15:35:49 | DEBUG   | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'x-data-logging-enabled', b'true'), (b'date', b'Tue, 18 Aug 2026 12:35:50 GMT'), (b'x-server-trace-id', b'dd85f71827cf49b7:998878fecc355e99:d1790beec158c241:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+15:35:49 | DEBUG   | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+15:35:49 | DEBUG   | httpcore.http11 | receive_response_body.complete
+15:35:49 | DEBUG   | httpcore.http11 | response_closed.started
+15:35:49 | DEBUG   | httpcore.http11 | response_closed.complete
+15:35:49 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 28904 (всего 28904) | 📤 534 (всего 534) | ∑ 29438
+15:35:49 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+Привет! 👋 Я ваш туристический ассистент. Помогу быстро найти и забронировать билеты на самолёт, поезд, автобус или электричку, подобрать отель, а также спланировать мультимодальные маршруты и сразу дать ссылку на оформление.
+
+Куда и когда планируете поездку? Укажите:
+📍 Город отправления и назначения  
+📅 Даты (туда и обратно, если нужно)  
+👥 Количество пассажиров (взрослые/дети)  
+🚆✈️🚌 Предпочтительный транспорт (или оставьте на мой выбор)
+
+Сразу приступлю к поиску лучших вариантов!
+15:35:49 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 0
+15:35:49 | DEBUG   | travel_agent.orchestrator | Async agent loop completed in 1 iterations
+15:35:49 | INFO    | travel_agent.orchestrator | ✅ Цикл завершён. Расход: 📥 28904 | 📤 534 | ∑ 29438
+15:35:49 | DEBUG   | travel_agent.cli | [general] ⏱ 6.7s  🔧 —
+15:37:38 | DEBUG   | httpcore.connection | close.started
+15:37:38 | DEBUG   | httpcore.connection | close.complete
+15:37:38 | DEBUG   | httpcore.connection | close.started
+15:37:38 | DEBUG   | httpcore.connection | close.complete
+15:44:35 | INFO    | travel_agent.orchestrator | 🧠 LLM-роутер ответил: ''
+15:44:35 | INFO    | travel_agent.orchestrator | ↩️ Фолбэк роутера → general
+15:44:35 | INFO    | travel_agent.orchestrator | 🧭 Роутер выбрал: general
+15:44:35 | INFO    | travel_agent.orchestrator | 🏗️ Создаю агента [general]
+15:44:35 | INFO    | mcp                       | MCP initialize...
+15:44:35 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "10751def-fdbb-419d-b6d9-6c8062d1eddd", "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "tutu-travel-agent", "version": "2.0.0"}}}
+15:44:35 | DEBUG   | mcp                       | MCP response: status=200, len=11820
+15:44:35 | INFO    | mcp                       | ✅ MCP сессия установлена (stateless)
+15:44:35 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "method": "notifications/initialized"}
+15:44:35 | DEBUG   | mcp                       | MCP response: status=202, len=0
+15:44:35 | DEBUG   | mcp                       | MCP notifications/initialized отправлен
+15:44:35 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "29d10fd5-c1cf-49b7-8135-99b035f6ff8c", "method": "tools/list", "params": {}}
+15:44:35 | DEBUG   | mcp                       | MCP response: status=200, len=105853
+15:44:35 | INFO    | mcp                       | MCP tools/list: 16 инструментов
+15:44:35 | DEBUG   | travel_agent.tools.registry | ToolRegistry loaded 16 tools from MCP (no wrapper)
+15:44:35 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:44:35 | DEBUG   | travel_agent.orchestrator | AGENT LOOP START. User message: привет
+15:44:35 | DEBUG   | travel_agent.orchestrator | History length: 0
+15:44:35 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:44:35 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 1 ---
+15:44:36 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 28904 (всего 28904) | 📤 176 (всего 176) | ∑ 29080
+15:44:36 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+Привет! 👋 Я ваш туристический ассистент. Помогу найти и забронировать билеты на самолёт, поезд или автобус, а также подобрать отель. 
+
+Куда и когда планируете поездку? Или, может быть, нужно просто найти варианты на ближайшие даты?
+15:44:36 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 0
+15:44:36 | DEBUG   | travel_agent.orchestrator | Async agent loop completed in 1 iterations
+15:44:36 | INFO    | travel_agent.orchestrator | ✅ Цикл завершён. Расход: 📥 28904 | 📤 176 | ∑ 29080
+15:44:36 | INFO    | travel_agent.cli          | ⏱ 2.1s | 🔧 —
+15:44:55 | INFO    | travel_agent.orchestrator | 🧠 LLM-роутер ответил: ''
+15:44:55 | INFO    | travel_agent.orchestrator | ↩️ Фолбэк роутера → general
+15:44:55 | INFO    | travel_agent.orchestrator | 🧭 Роутер выбрал: general
+15:44:55 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:44:55 | DEBUG   | travel_agent.orchestrator | AGENT LOOP START. User message: ты не мартышка?
+15:44:55 | DEBUG   | travel_agent.orchestrator | History length: 1
+15:44:55 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:44:55 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 1 ---
+15:44:58 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 28916 (всего 57820) | 📤 477 (всего 653) | ∑ 29393
+15:44:58 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+Привет! 👋 Нет, не мартышка 😄 Я — туристический ассистент на базе технологий Туту. Помогаю искать и бронировать билеты на самолёты, поезда, автобусы и электрички, а также подбирать отели.
+
+Куда планируете поездку? Даты, город и состав пассажиров — и сразу подберу лучшие варианты. 🚆✈️🏨
+15:44:58 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 0
+15:44:58 | DEBUG   | travel_agent.orchestrator | Async agent loop completed in 1 iterations
+15:44:58 | INFO    | travel_agent.orchestrator | ✅ Цикл завершён. Расход: 📥 57820 | 📤 653 | ∑ 58473
+15:44:58 | INFO    | travel_agent.cli          | ⏱ 2.5s | 🔧 —
+15:45:27 | INFO    | travel_agent.orchestrator | 🔑 Роутинг по ключевым словам → rail
+15:45:27 | INFO    | travel_agent.orchestrator | 🧭 Роутер выбрал: rail
+15:45:27 | INFO    | travel_agent.orchestrator | 🏗️ Создаю агента [rail]
+15:45:27 | DEBUG   | travel_agent.builder      | Агент [rail]: 7/16 инструментов (скилл 'rail')
+15:45:27 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:45:27 | DEBUG   | travel_agent.orchestrator | AGENT LOOP START. User message: посмотри электричку москва калуга
+15:45:27 | DEBUG   | travel_agent.orchestrator | History length: 2
+15:45:27 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:45:27 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 1 ---
+15:45:39 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 19270 (всего 19270) | 📤 1687 (всего 1687) | ∑ 20957
+15:45:39 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+Привет! Я искусственный интеллект, а не мартышка 😄 Помогу спланировать поездку. Сейчас посмотрю расписание электричек Москва — Калуга на завтра (19 августа).
+
+
+
+15:45:39 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 2
+15:45:39 | INFO    | travel_agent.orchestrator |    🔧 [get_etrain_instructions] args={}
+15:45:39 | INFO    | mcp                       | MCP call: get_etrain_instructions
+15:45:39 | DEBUG   | mcp                       | MCP call arguments: {}
+15:45:39 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "024b1c30-8bbe-4bf1-8b9d-7604c4673a19", "method": "tools/call", "params": {"name": "get_etrain_instructions", "arguments": {}}}
+15:45:39 | DEBUG   | mcp                       | MCP response: status=200, len=2568
+15:45:39 | DEBUG   | travel_agent.orchestrator | [get_etrain_instructions] result size: 2388 chars
+15:45:39 | DEBUG   | travel_agent.orchestrator | [get_etrain_instructions] result preview: # Etrain playbook — commuter / suburban trains (электрички)
+(`search_etrain` -> `create_checkout_link`)
+
+## Station disambiguation (mandatory)
+A city often has several commuter stations far apart — СПб (Московский /
+Ладожский / Балтийский …), Москва (the radial вокзалы). The departure /
+arrival point is in `legs[].segments[].from|to` as a self-describing
+string `"City — Station (code)"` (e.g. `"Санкт-Петербург — Московский
+вокзал (2004003)"`). Always name the concrete station when comparing
+offers — never present two electrichkas that leave the same city from
+different stations as if they share an origin, and never make the user
+read the station out of the checkout URL.
+
+## Consist type
+Each segment may carry `vehicle_meta` ({name: Ласточка/Дальний, code:
+swallow/distant, description}) — use it to filter consist type without
+parsing labels.
+
+## Fares
+Unlike rail, etrain offers keep their full `variants[]` even in `compact`
+(commuter fares are usually a single price, and there's NO read-only
+etrain detail endpoint to recover them from — see below). Quote the fare
+directly from `variants[]`.
+
+## Detail card
+No separate read-only etrain detail endpoint.
+`get_offer_details(product_type='etrain', details_ref=<offer>)` reformats
+the selected search offer with a `ticket` block (eticket, by_passport) and
+surfaces `vehicle_type` in the summary.
+
+## Checkout
+`create_checkout_link` (transport=etrain) builds the tutu.ru commuter
+schedule URL from `checkout_ref` (`departure_etrain_id` /
+`
+15:45:39 | INFO    | travel_agent.orchestrator |    🔧 [search_etrain] args={"departure_date": "2026-08-19", "destination": "Калуга", "origin": "Москва"}
+15:45:39 | INFO    | mcp                       | MCP call: search_etrain
+15:45:39 | DEBUG   | mcp                       | MCP call arguments: {"departure_date": "2026-08-19", "destination": "Калуга", "origin": "Москва"}
+15:45:39 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "62a21fe2-86d4-4a12-9f90-01afe0669401", "method": "tools/call", "params": {"name": "search_etrain", "arguments": {"departure_date": "2026-08-19", "destination": "Калуга", "origin": "Москва"}}}
+15:45:39 | DEBUG   | mcp                       | MCP response: status=200, len=16305
+15:45:39 | INFO    | travel_agent.orchestrator |    ✂️ [search_etrain] результат усечён 14669→12000 символов (лишние офферы отброшены для скорости генерации)
+15:45:39 | DEBUG   | travel_agent.orchestrator | [search_etrain] result size: 12115 chars
+15:45:39 | DEBUG   | travel_agent.orchestrator | [search_etrain] result preview: {"offers":[{"offer_id":"12baf54c78e06a3ba0492d7fdecba2a8","transport":"etrain","price":{"amount":790.0,"currency":"RUB"},"duration_min":184,"carriers":[],"search_results_url":"https://www.tutu.ru/rasp.php?st1=16503&st2=20703&date=19.08.2026","segments_count":1,"checkout_url":"https://www.tutu.ru/rasp.php?st1=16503&st2=20703&date=19.08.2026","departure_at":"2026-08-19T16:36:00+03:00","arrival_at":"2026-08-19T19:40:00+03:00","legs":[{"label":"outbound","from":"Москва — Москва Киевская (2000007)","to":"Калуга — Калуга-1 (2000345)","departure_at":"2026-08-19T16:36:00+03:00","arrival_at":"2026-08-19T19:40:00+03:00","duration_min":184,"segments":[{"from":"Москва — Москва Киевская (2000007)","to":"Калуга — Калуга-1 (2000345)","departure_at":"2026-08-19T16:36:00+03:00","arrival_at":"2026-08-19T19:40:00+03:00","duration_min":184,"carrier":null,"voyage_no":"6159/6160","from_geo_point_id":2957768,"to_geo_point_id":2957947,"subtype":"etrain","vehicle_meta":{"name":"Стандарт плюс","code":"standardPlus","description":"Поезд с повышенным уровнем комфорта. Действуют те же билеты, что и на обычную электричку"}}]}],"variants":[{"variant_id":"cfab5507c16c6a62d73ade5156ee0884","offer_hash":"12baf54c78e06a3ba0492d7fdecba2a8","price":{"amount":790.0,"currency":"RUB"}}],"checkout_ref":{"transport":"etrain","departure_city_id":2657260,"arrival_city_id":2662387,"departure_station_code":"2000007","arrival_station_code":"2000345","train_number":"6159/6160","departure_at":"2026-08-19T16:36:00+03:00","de
+15:45:39 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 2 ---
+15:45:44 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 25740 (всего 45010) | 📤 632 (всего 2319) | ∑ 26372
+15:45:44 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+Нашел электрички на завтра, 19 августа. Все они отправляются с **Киевского вокзала** и прибывают на **Калуга-1**.
+
+Цена билета везде одинаковая — **790 ₽**. Время в пути — около 3 часов.
+
+Вот самые удобные варианты:
+
+🚆 **09:05 — 12:08** (в пути 3 ч 03 мин)
+🚆 **10:15 — 13:21** (в пути 3 ч 06 мин)
+🚆 **16:36 — 19:40** (в пути 3 ч 04 мин)
+🚆 **18:23 — 21:27** (в пути 3 ч 04 мин)
+
+Есть еще ранние утренние (03:42, 05:22) и поздние вечерние рейсы.
+
+Какой вариант вам подходит? Могу сразу дать ссылку на
+15:45:44 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 0
+15:45:44 | DEBUG   | travel_agent.orchestrator | Async agent loop completed in 2 iterations
+15:45:44 | INFO    | travel_agent.orchestrator | ✅ Цикл завершён. Расход: 📥 45010 | 📤 2319 | ∑ 47329
+15:45:44 | INFO    | travel_agent.cli          | ⏱ 16.9s | 🔧 get_etrain_instructions, search_etrain
+15:46:40 | INFO    | travel_agent.orchestrator | 🔑 Роутинг по ключевым словам → avia
+15:46:40 | INFO    | travel_agent.orchestrator | 🧭 Роутер выбрал: avia
+15:46:40 | INFO    | travel_agent.orchestrator | 🏗️ Создаю агента [avia]
+15:46:40 | DEBUG   | travel_agent.builder      | Агент [avia]: 4/16 инструментов (скилл 'avia')
+15:46:40 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:46:40 | DEBUG   | travel_agent.orchestrator | AGENT LOOP START. User message: а посмотри самолеты москва сочи на 22 августа на 1 без багажа. Выведи максимально, сортируй по времени вылета
+15:46:40 | DEBUG   | travel_agent.orchestrator | History length: 6
+15:46:40 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:46:40 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 1 ---
+15:46:43 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 20689 (всего 20689) | 📤 404 (всего 404) | ∑ 21093
+15:46:43 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+
+15:46:43 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 1
+15:46:43 | INFO    | travel_agent.orchestrator |    🔧 [search_avia] args={"adults": 1, "sort": "departure_asc", "destination": "Сочи", "page_size": 30, "departure_date": "2026-08-22", "origin": "Москва"}
+15:46:43 | INFO    | mcp                       | MCP call: search_avia
+15:46:43 | DEBUG   | mcp                       | MCP call arguments: {"adults": 1, "sort": "departure_asc", "destination": "Сочи", "page_size": 30, "departure_date": "2026-08-22", "origin": "Москва"}
+15:46:43 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "a8e78dc0-c339-4460-82e2-5fbe06ff2499", "method": "tools/call", "params": {"name": "search_avia", "arguments": {"adults": 1, "sort": "departure_asc", "destination": "Сочи", "page_size": 30, "departure_date": "2026-08-22", "origin": "Москва"}}}
+15:46:44 | DEBUG   | mcp                       | MCP response: status=200, len=157355
+15:46:44 | INFO    | travel_agent.orchestrator |    ✂️ [search_avia] результат усечён 137143→12000 символов (лишние офферы отброшены для скорости генерации)
+15:46:44 | DEBUG   | travel_agent.orchestrator | [search_avia] result size: 12115 chars
+15:46:44 | DEBUG   | travel_agent.orchestrator | [search_avia] result preview: {"offers":[{"offer_id":"89777c1f7fbbc072b3bedd8f21d9e9b1","transport":"avia","price":{"amount":19839.54,"currency":"RUB"},"duration_min":210,"carriers":["Аэрофлот"],"search_results_url":"https://avia.tutu.ru/f/Moskva/Sochi/?class=Y&travelers=1&route[0]=491-22082026-78","segments_count":1,"departure_at":"2026-08-22T02:25:00+03:00","arrival_at":"2026-08-22T05:55:00+03:00","legs":[{"label":"outbound","from":"Москва — Шереметьево (SVO), терм. B","to":"Сочи, AER","departure_at":"2026-08-22T02:25:00+03:00","arrival_at":"2026-08-22T05:55:00+03:00","duration_min":210,"segments":[{"from":"Москва — Шереметьево (SVO), терм. B","to":"Сочи, AER","departure_at":"2026-08-22T02:25:00+03:00","arrival_at":"2026-08-22T05:55:00+03:00","duration_min":210,"carrier":"Аэрофлот","voyage_no":"SU-1074","from_geo_point_id":2719726,"to_geo_point_id":2718761,"review_summary":{"rating":9.25,"review_count":22870,"label":"⭐ 9.25/10 · 22 870 отзывов","source":"offers-api.feedback","scope":"carrier","subject":"Аэрофлот","scale":10,"feedback_key":"1062"}}]}],"variants":[{"variant_id":"77595f4039f0ab7562c84e799a584d21:06dd44ad3a22ddcce66412f835719a8b","offer_hash":"{\"Price\":19840,\"OriginalHash\":\"[{\\\"offerVariantHash\\\":\\\"10a211015525a93264b780ab93ef05bb\\\",\\\"variantConditionsHash\\\":\\\"89777c1f7fbbc072b3bedd8f21d9e9b1:4a15ebaf82f14491e2bac3a776e17da0\\\",\\\"pricingVariantHash\\\":\\\"e51ce3e61c87a451007427108fee9c71\\\"}]\"}","price":{"amount":19839.54,"currency":"RUB"},"conditions":{"fare_family
+15:46:44 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 2 ---
+15:46:47 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 26300 (всего 46989) | 📤 909 (всего 1313) | ∑ 27209
+15:46:47 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+Вот рейсы Москва → Сочи на 22 августа 2026, отсортированные по времени вылета. **Выделены тарифы без багажа** (только ручная кладь 10 кг):
+
+---
+
+### ✈️ Рейсы с тарифом "Без багажа" (только ручная кладь)
+
+**1. SU-1074 | Аэрофлот** ⭐ 9.25/10
+- 🕐 02:25 → 05:55 (3ч 30мин)
+- 📍 SVO (Шереметьево, терм. B) → AER (Сочи)
+- 💰 **19 840 ₽** — Эконом Базовый
+- 🎒 Ручная кладь: 10 кг (55×40×25)
+- 🔄 Можно менять, но не вернуть
+
+**2. SU-1110 | Аэрофлот** ⭐ 9.25/10
+- 🕐 04:55 → 08:30 (3ч 35мин)
+- 📍 SVO (Шереметье
+15:46:47 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 0
+15:46:47 | DEBUG   | travel_agent.orchestrator | Async agent loop completed in 2 iterations
+15:46:47 | INFO    | travel_agent.orchestrator | ✅ Цикл завершён. Расход: 📥 46989 | 📤 1313 | ∑ 48302
+15:46:47 | INFO    | travel_agent.cli          | ⏱ 7.2s | 🔧 search_avia
+15:47:35 | INFO    | travel_agent.orchestrator | 🔑 Роутинг по ключевым словам → avia
+15:47:35 | INFO    | travel_agent.orchestrator | 🧭 Роутер выбрал: avia
+15:47:35 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:47:35 | DEBUG   | travel_agent.orchestrator | AGENT LOOP START. User message: рейсы победа самые дешевые на 22 августа
+15:47:35 | DEBUG   | travel_agent.orchestrator | History length: 9
+15:47:35 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:47:35 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 1 ---
+15:47:38 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 26325 (всего 73314) | 📤 386 (всего 1699) | ∑ 26711
+15:47:38 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+
+15:47:38 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 1
+15:47:38 | INFO    | travel_agent.orchestrator |    🔧 [search_avia] args={"destination": "Сочи", "page_size": 10, "carriers": ["Победа"], "adults": 1, "origin": "Москва", "departure_date": "2026-08-22", "sort": "price_asc"}
+15:47:38 | INFO    | mcp                       | MCP call: search_avia
+15:47:38 | DEBUG   | mcp                       | MCP call arguments: {"destination": "Сочи", "page_size": 10, "carriers": ["Победа"], "adults": 1, "origin": "Москва", "departure_date": "2026-08-22", "sort": "price_asc"}
+15:47:38 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "e64eea6a-90fa-43de-a3f8-88dffda0711a", "method": "tools/call", "params": {"name": "search_avia", "arguments": {"destination": "Сочи", "page_size": 10, "carriers": ["Победа"], "adults": 1, "origin": "Москва", "departure_date": "2026-08-22", "sort": "price_asc"}}}
+15:47:39 | DEBUG   | mcp                       | MCP response: status=200, len=23763
+15:47:39 | INFO    | travel_agent.orchestrator |    ✂️ [search_avia] результат усечён 20579→12000 символов (лишние офферы отброшены для скорости генерации)
+15:47:39 | DEBUG   | travel_agent.orchestrator | [search_avia] result size: 12115 chars
+15:47:39 | DEBUG   | travel_agent.orchestrator | [search_avia] result preview: {"offers":[{"offer_id":"dc750f7836178ea193eac0ab920cf739","transport":"avia","price":{"amount":9094.0,"currency":"RUB"},"duration_min":220,"carriers":["Победа"],"search_results_url":"https://avia.tutu.ru/f/Moskva/Sochi/?class=Y&travelers=1&route[0]=491-22082026-78","segments_count":1,"departure_at":"2026-08-22T21:35:00+03:00","arrival_at":"2026-08-23T01:15:00+03:00","legs":[{"label":"outbound","from":"Москва — Шереметьево (SVO)","to":"Сочи, AER","departure_at":"2026-08-22T21:35:00+03:00","arrival_at":"2026-08-23T01:15:00+03:00","duration_min":220,"segments":[{"from":"Москва — Шереметьево (SVO)","to":"Сочи, AER","departure_at":"2026-08-22T21:35:00+03:00","arrival_at":"2026-08-23T01:15:00+03:00","duration_min":220,"carrier":"Победа","voyage_no":"DP-6939","from_geo_point_id":2719726,"to_geo_point_id":2718761,"review_summary":{"rating":6.93,"review_count":14260,"label":"⭐ 6.93/10 · 14 260 отзывов","source":"offers-api.feedback","scope":"carrier","subject":"Победа","scale":10,"feedback_key":"2227"}}]}],"variants":[{"variant_id":"2ea66207007090d04906870f268218af:671018c27b97d70aa92a2c65120e84ac","offer_hash":"{\"Price\":9094,\"OriginalHash\":\"[{\\\"offerVariantHash\\\":\\\"bfa52d82b5848234810c108f6db16f80\\\",\\\"variantConditionsHash\\\":\\\"dc750f7836178ea193eac0ab920cf739:f4b7bd50b88d2aef62aa0ef78689dd61\\\",\\\"pricingVariantHash\\\":\\\"cb5164a540ed87585ad47c5bf2eedb7e\\\"}]\"}","price":{"amount":9094.0,"currency":"RUB"},"conditions":{"fare_family":"Базовый","baggage":{"kg":0
+15:47:39 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 2 ---
+15:47:55 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 32142 (всего 105456) | 📤 2764 (всего 4463) | ∑ 34906
+15:47:55 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+Нашел самые дешевые рейсы авиакомпании «Победа» на 22 августа. Самые низкие цены — **9 094 ₽**.
+
+Вот два варианта по этой цене (тариф «Базовый», без багажа):
+
+### ✈️ Вариант 1: Дневной (из Внуково)
+*   **Время:** 14:05 – 17:40 (3 ч 35 мин)
+*   **Маршрут:** Москва (Внуково) → Сочи
+*   **Рейс:** DP-115
+*   **Цена:** **9 094 ₽**
+*   **Багаж:** 0 кг (платный), ручная кладь 36×30×27 см.
+
+### ✈️ Вариант 2: Вечерний (из Шереметьево)
+*   **Время:** 21:35 – 01:15 (+1 день, 3 ч 40 мин)
+*   **Маршрут:** 
+15:47:55 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 0
+15:47:55 | DEBUG   | travel_agent.orchestrator | Async agent loop completed in 2 iterations
+15:47:55 | INFO    | travel_agent.orchestrator | ✅ Цикл завершён. Расход: 📥 105456 | 📤 4463 | ∑ 109919
+15:47:55 | INFO    | travel_agent.cli          | ⏱ 20.7s | 🔧 search_avia
+15:52:06 | INFO    | travel_agent.orchestrator | 🧠 LLM-роутер ответил: ''
+15:52:06 | INFO    | travel_agent.orchestrator | ↩️ Фолбэк роутера → general
+15:52:06 | INFO    | travel_agent.orchestrator | 🧭 Роутер выбрал: general
+15:52:06 | INFO    | travel_agent.orchestrator | 🏗️ Создаю агента [general]
+15:52:06 | INFO    | mcp                       | MCP initialize...
+15:52:06 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "de1490ea-1e86-4525-b32f-15fcf8e30789", "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "tutu-travel-agent", "version": "2.0.0"}}}
+15:52:06 | DEBUG   | mcp                       | MCP response: status=200, len=11820
+15:52:06 | INFO    | mcp                       | ✅ MCP сессия установлена (stateless)
+15:52:06 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "method": "notifications/initialized"}
+15:52:06 | DEBUG   | mcp                       | MCP response: status=202, len=0
+15:52:06 | DEBUG   | mcp                       | MCP notifications/initialized отправлен
+15:52:06 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "6ef08e63-62b4-4b0b-abe0-1e8bfeb5f806", "method": "tools/list", "params": {}}
+15:52:06 | DEBUG   | mcp                       | MCP response: status=200, len=105853
+15:52:06 | INFO    | mcp                       | MCP tools/list: 16 инструментов
+15:52:06 | DEBUG   | travel_agent.tools.registry | ToolRegistry loaded 16 tools from MCP (no wrapper)
+15:52:06 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:52:06 | DEBUG   | travel_agent.orchestrator | AGENT LOOP START. User message: /я Мартышка
+15:52:06 | DEBUG   | travel_agent.orchestrator | History length: 0
+15:52:06 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:52:06 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 1 ---
+15:52:09 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 28906 (всего 28906) | 📤 383 (всего 383) | ∑ 29289
+15:52:09 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+Здравствуйте, Мартышка! Рад вас видеть.
+
+Планируете путешествие? Куда и когда хотите поехать? Я могу помочь с поиском билетов (авиа, ж/д, автобус), отелей или составить мультимодальный маршрут.
+15:52:09 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 0
+15:52:09 | DEBUG   | travel_agent.orchestrator | Async agent loop completed in 1 iterations
+15:52:09 | INFO    | travel_agent.orchestrator | ✅ Цикл завершён. Расход: 📥 28906 | 📤 383 | ∑ 29289
+15:52:09 | INFO    | travel_agent.cli          | ⏱ 4.1s | 🔧 —
+15:52:47 | INFO    | travel_agent.orchestrator | 🧠 LLM-роутер ответил: ''
+15:52:47 | INFO    | travel_agent.orchestrator | ↩️ Фолбэк роутера → general
+15:52:47 | INFO    | travel_agent.orchestrator | 🧭 Роутер выбрал: general
+15:52:47 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:52:47 | DEBUG   | travel_agent.orchestrator | AGENT LOOP START. User message: /память Я люблю ездить в Турцию, в Анталью
+15:52:47 | DEBUG   | travel_agent.orchestrator | History length: 1
+15:52:47 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:52:47 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 1 ---
+15:52:52 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 28928 (всего 57834) | 📤 574 (всего 957) | ∑ 29502
+15:52:52 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+Принято, Мартышка! Запомнил, что вы любите Анталью — буду учитывать это при подборе вариантов. 😊
+
+Хотите прямо сейчас поискать билеты или отель в Анталью? Если да, уточните, пожалуйста:
+📅 Даты поездки (туда и, если нужно, обратно)
+👥 Состав пассажиров (сколько взрослых и детей, если есть)
+🎒 Что важнее: перелёт, проживание или сразу готовый маршрут?
+
+Как только дадите эти данные, сразу начну поиск и предложу лучшие варианты.
+15:52:52 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 0
+15:52:52 | DEBUG   | travel_agent.orchestrator | Async agent loop completed in 1 iterations
+15:52:52 | INFO    | travel_agent.orchestrator | ✅ Цикл завершён. Расход: 📥 57834 | 📤 957 | ∑ 58791
+15:52:52 | INFO    | travel_agent.cli          | ⏱ 5.3s | 🔧 —
+15:53:24 | INFO    | travel_agent.orchestrator | 🧠 LLM-роутер ответил: ''
+15:53:24 | INFO    | travel_agent.orchestrator | ↩️ Фолбэк роутера → general
+15:53:24 | INFO    | travel_agent.orchestrator | 🧭 Роутер выбрал: general
+15:53:24 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:53:24 | DEBUG   | travel_agent.orchestrator | AGENT LOOP START. User message: найди тур на неделю после 15 сентября
+15:53:24 | DEBUG   | travel_agent.orchestrator | History length: 2
+15:53:24 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:53:24 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 1 ---
+15:53:28 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 28943 (всего 86777) | 📤 576 (всего 1533) | ∑ 29519
+15:53:28 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+
+
+15:53:28 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 2
+15:53:28 | INFO    | travel_agent.orchestrator |    🔧 [get_hotels_instructions] args={}
+15:53:28 | INFO    | mcp                       | MCP call: get_hotels_instructions
+15:53:28 | DEBUG   | mcp                       | MCP call arguments: {}
+15:53:28 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "8734eef6-113e-4d6c-bcb3-74668b5c44d4", "method": "tools/call", "params": {"name": "get_hotels_instructions", "arguments": {}}}
+15:53:28 | DEBUG   | mcp                       | MCP response: status=200, len=9947
+15:53:28 | DEBUG   | travel_agent.orchestrator | [get_hotels_instructions] result size: 9634 chars
+15:53:28 | DEBUG   | travel_agent.orchestrator | [get_hotels_instructions] result preview: # Hotels playbook (`search_hotels` -> `get_offer_details` ->
+`create_checkout_link`)
+
+## Checkout
+Hotels have an `explicit/hotel` deeplink,
+the same stateless handoff family as the transport tools — the user opens
+the link and Tutu builds the cart in THEIR browser session (cold browser
+works). `create_checkout_link` (product_type=hotels) has TWO modes off the
+row's `checkout_ref`:
+- **Page (default, `kind="deeplink"`)** — `hotel_alias` + dates + guests
+  (+ `search_id`) open the hotel page with everything pre-filled for the
+  user to pick a room. This is the official replacement for the old
+  `offers/details` page link.
+- **Straight-to-cart (`kind="checkout_deeplink"`)** — also pass an
+  `offer_pack_hash` and the link mints the cart for that pack. It MUST be a
+  SPECIFIC room rate's `offerpack_hash` from `get_offer_details`
+  (`rooms[].rates[].offerpack_hash`). The listing `best_offer.offerpack_hash`
+  does NOT mint a cart — the redirector falls back
+  to the hotel page — so it's not carried in `checkout_ref`; get the cart hash
+  from a room the user actually picked (same shape as rail seats from
+  `get_rail_seatmap`). A stale/unbookable pack lands on the hotel page instead
+  of erroring (`fallback_to_details`), so this mode is always safe.
+You can still hand over `best_offer.checkout_url` directly — it's on every
+search row. (If a ref lacks `hotel_alias`, the
+tool returns that page with `kind="hotel_page"`.)
+
+## geo_id: hotels vs transport (critical)
+`search_hotels` resolves
+15:53:28 | INFO    | travel_agent.orchestrator |    🔧 [get_avia_instructions] args={}
+15:53:28 | INFO    | mcp                       | MCP call: get_avia_instructions
+15:53:28 | DEBUG   | mcp                       | MCP call arguments: {}
+15:53:28 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "7050a285-1bec-42c6-934a-33a9f5c602a4", "method": "tools/call", "params": {"name": "get_avia_instructions", "arguments": {}}}
+15:53:28 | DEBUG   | mcp                       | MCP response: status=200, len=10026
+15:53:28 | DEBUG   | travel_agent.orchestrator | [get_avia_instructions] result size: 9709 chars
+15:53:28 | DEBUG   | travel_agent.orchestrator | [get_avia_instructions] result preview: # Avia playbook (`search_avia` -> `create_checkout_link`)
+
+## Detail card
+No confirmed read-only avia detail endpoint. For a presentation card,
+pass the selected compact offer object as `details_ref` to
+`get_offer_details(product_type='avia', ...)` — it reformats with no
+side effects.
+
+## Flight number
+The flight number is `legs[].segments[].voyage_no` (e.g. `SU-6026`) — one
+per segment, so a connection shows one number per hop. Quote it verbatim;
+never reconstruct a flight number from the carrier name or times.
+
+## Filters (`direct_only`, `carriers`)
+`direct_only=true` keeps only nonstop flights (every leg a single segment;
+round-trip stays direct when both legs are). `carriers=[...]` keeps only offers
+where every listed airline matches one of the requested names/ids; a mixed
+Aeroflot+S7 offer does not satisfy "only Aeroflot".
+`meta.carriers_available` is the per-route airline reference DERIVED from the
+fetched offers (avia fetches the full route pool, so it's complete for the
+route): each entry has `name` ("Аэрофлот"), `offers_count` and `price_from` —
+plus a stable `id` ("1062") ONLY when Tutu ships its carrier facet (the current
+`/avia/offers` endpoint doesn't — see the TODO-for-Tutu; filter by `name`).
+Matching is a case-insensitive substring on the name, so guessing ("aeroflot"
+for "Аэрофлот") silently drops everything. What
+each filter removed is in `meta.post_filter_dropped_not_direct` /
+`post_filter_dropped_wrong_carrier`. When a filter is active the whole route
+pool
+15:53:28 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 2 ---
+15:53:31 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 34146 (всего 120923) | 📤 389 (всего 1922) | ∑ 34535
+15:53:31 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+Отлично, Анталья — прекрасный выбор! 🌴
+
+Чтобы найти лучшие варианты, уточните, пожалуйста:
+
+1. **Откуда вылет?** (Москва, или другой город?)
+2. **Точные даты?** (например, с 17 по 24 сентября?)
+3. **Сколько человек?** (взрослые / дети, если есть)
+
+Как только уточните — сразу найду и билеты, и отели на нужные даты!
+15:53:31 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 0
+15:53:31 | DEBUG   | travel_agent.orchestrator | Async agent loop completed in 2 iterations
+15:53:31 | INFO    | travel_agent.orchestrator | ✅ Цикл завершён. Расход: 📥 120923 | 📤 1922 | ∑ 122845
+15:53:31 | INFO    | travel_agent.cli          | ⏱ 7.3s | 🔧 get_hotels_instructions, get_avia_instructions
+15:54:09 | INFO    | travel_agent.orchestrator | 🧠 LLM-роутер ответил: ''
+15:54:09 | INFO    | travel_agent.orchestrator | ↩️ Фолбэк роутера → general
+15:54:09 | INFO    | travel_agent.orchestrator | 🧭 Роутер выбрал: general
+15:54:09 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:54:09 | DEBUG   | travel_agent.orchestrator | AGENT LOOP START. User message: Вылет из Москвы 2 взрослых с 17 сентября на неделю
+15:54:09 | DEBUG   | travel_agent.orchestrator | History length: 6
+15:54:09 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:54:09 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 1 ---
+15:54:11 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 34174 (всего 155097) | 📤 309 (всего 2231) | ∑ 34483
+15:54:11 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+
+15:54:11 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 1
+15:54:11 | INFO    | travel_agent.orchestrator |    🔧 [search_avia] args={"return_date": "2026-09-24", "adults": 2, "destination": "Анталья", "origin": "Москва", "departure_date": "2026-09-17"}
+15:54:11 | INFO    | mcp                       | MCP call: search_avia
+15:54:11 | DEBUG   | mcp                       | MCP call arguments: {"return_date": "2026-09-24", "adults": 2, "destination": "Анталья", "origin": "Москва", "departure_date": "2026-09-17"}
+15:54:11 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "9a241979-1861-45a6-a11c-c0c523d11e34", "method": "tools/call", "params": {"name": "search_avia", "arguments": {"return_date": "2026-09-24", "adults": 2, "destination": "Анталья", "origin": "Москва", "departure_date": "2026-09-17"}}}
+15:54:26 | DEBUG   | mcp                       | MCP response: status=200, len=61856
+15:54:26 | INFO    | travel_agent.orchestrator |    ✂️ [search_avia] результат усечён 54892→12000 символов (лишние офферы отброшены для скорости генерации)
+15:54:26 | DEBUG   | travel_agent.orchestrator | [search_avia] result size: 12115 chars
+15:54:26 | DEBUG   | travel_agent.orchestrator | [search_avia] result preview: {"offers":[{"offer_id":"dccb084b507a4839bc4b71e27041c1c8+0dcff749d640cdcdf1f28abea7d63e79+a1099b1a8bd5b5e74ec1bd20f9c9c3e6+20d1b2b5f0de57a65e55138c036e13c9","transport":"avia","price":{"amount":71324.0,"currency":"RUB"},"duration_min":660,"carriers":["AJet"],"search_results_url":"https://avia.tutu.ru/f/Moskva/Antalya/?class=Y&travelers=2&route[0]=491-17092026-124&route[1]=124-24092026-491","segments_count":4,"departure_at":"2026-09-17T05:05:00+03:00","arrival_at":"2026-09-17T12:45:00+03:00","return_departure_at":"2026-09-24T10:40:00+03:00","return_arrival_at":"2026-09-25T04:05:00+03:00","is_round_trip":true,"legs":[{"label":"outbound","from":"Москва — Внуково (VKO)","to":"Анталья, AYT","departure_at":"2026-09-17T05:05:00+03:00","arrival_at":"2026-09-17T12:45:00+03:00","duration_min":330,"segments":[{"from":"Москва — Внуково (VKO)","to":"Анкара — Эсенбога (ESB)","departure_at":"2026-09-17T05:05:00+03:00","arrival_at":"2026-09-17T09:20:00+03:00","duration_min":255,"carrier":"AJet","voyage_no":"VF-588","from_geo_point_id":2718687,"to_geo_point_id":2722392,"review_summary":{"rating":7.02,"review_count":48,"label":"⭐ 7.02/10 · 48 отзывов","source":"offers-api.feedback","scope":"carrier","subject":"AJet","scale":10,"feedback_key":"3090"}},{"from":"Анкара — Эсенбога (ESB)","to":"Анталья, AYT","departure_at":"2026-09-17T11:30:00+03:00","arrival_at":"2026-09-17T12:45:00+03:00","duration_min":75,"carrier":"AJet","voyage_no":"VF-4004","from_geo_point_id":2722392,"to_geo_point_id":271904
+15:54:26 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 2 ---
+15:54:28 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 40692 (всего 195789) | 📤 203 (всего 2434) | ∑ 40895
+15:54:28 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+
+15:54:28 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 1
+15:54:28 | INFO    | travel_agent.orchestrator |    🔧 [search_hotels] args={"adults": 2, "check_in": "2026-09-17", "city_name": "Анталья", "check_out": "2026-09-24"}
+15:54:28 | INFO    | mcp                       | MCP call: search_hotels
+15:54:28 | DEBUG   | mcp                       | MCP call arguments: {"adults": 2, "check_in": "2026-09-17", "city_name": "Анталья", "check_out": "2026-09-24"}
+15:54:28 | DEBUG   | mcp                       | MCP POST: {"jsonrpc": "2.0", "id": "4257dbd1-8eda-4dcf-802e-69f0b1189f63", "method": "tools/call", "params": {"name": "search_hotels", "arguments": {"adults": 2, "check_in": "2026-09-17", "city_name": "Анталья", "check_out": "2026-09-24"}}}
+15:54:29 | DEBUG   | mcp                       | MCP response: status=200, len=21622
+15:54:29 | INFO    | travel_agent.orchestrator |    ✂️ [search_hotels] результат усечён 19866→12000 символов (лишние офферы отброшены для скорости генерации)
+15:54:29 | DEBUG   | travel_agent.orchestrator | [search_hotels] result size: 12115 chars
+15:54:29 | DEBUG   | travel_agent.orchestrator | [search_hotels] result preview: {"hotels":[{"hotel_id":"6782894","hotel_geo_id":"6782894","tutu_offer_id":"7468657d-b014-40f0-8764-dd3ff7b111d6","name":"Отель Delta Hotels by Marriott Antalya Lara","stars":5,"rating":8.09,"review_count":14,"address":"4.2 км от центра","location":{"lat":36.858414,"lng":30.73251,"city":null,"city_geo_id":null},"photos":["https://cdn2.tu-tu.ru/imghub/view/619eadc9-eabe-4ea4-b22f-ac646c69af7a/resize_500_500/4271b6c12b3a41b87b17f2bfcd92ed9a/2339a2637dfbac721fa472804daec7f7.jpg"],"alias":"antalya_hotel_resort_and_spa","checkout_url":"https://hotel.tutu.ru/offers/details?business=0&check_in=2026-09-17&check_out=2026-09-24&geo_id=6782894&geo_name=%D0%90%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D1%8F&room%5B0%5D=2&search_id=59523f82a534532ba5f1b80abf63675a","best_offer":{"offerpack_hash":"c07811f7-5556-46fe-9c3e-85e0d5aa6343","room_name":"Стандартный номер, 2 односпальные кровати, частичный вид на море|2 односпальных кровати","price":{"amount":105169.19,"currency":"RUB"},"price_basis":"stay_total","checkout_url":"https://hotel.tutu.ru/offers/details?business=0&check_in=2026-09-17&check_out=2026-09-24&geo_id=6782894&geo_name=%D0%90%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D1%8F&room%5B0%5D=2&search_id=59523f82a534532ba5f1b80abf63675a","room_size_sqm":null,"breakfast_included":null,"meal_name":null,"free_cancellation":true,"pay_at_hotel":null,"pay_online":null,"highlights":[{"type":"policies","text":"Бесплатная отмена"}]},"review_summary":{"rating":8.09,"review_count":14,"label":"⭐ 8.09/10 · 14 отзывов","s
+15:54:29 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 3 ---
+15:54:53 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 46742 (всего 242531) | 📤 4096 (всего 6530) | ∑ 50838
+15:54:53 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+15:54:53 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 0
+15:54:53 | WARNING | travel_agent.orchestrator | Empty final response after tool calls. Triggering retry.
+15:55:01 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 46789 (всего 289320) | 📤 1327 (всего 7857) | ∑ 48116
+15:55:01 | DEBUG   | travel_agent.orchestrator | Async agent loop completed in 3 iterations
+15:55:01 | INFO    | travel_agent.orchestrator | ✅ Цикл завершён. Расход: 📥 289320 | 📤 7857 | ∑ 297177
+15:55:01 | INFO    | travel_agent.cli          | ⏱ 52.2s | 🔧 search_avia, search_hotels
+15:57:01 | INFO    | travel_agent.orchestrator | 🧠 LLM-роутер ответил: ''
+15:57:01 | INFO    | travel_agent.orchestrator | ↩️ Фолбэк роутера → general
+15:57:01 | INFO    | travel_agent.orchestrator | 🧭 Роутер выбрал: general
+15:57:01 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:57:01 | DEBUG   | travel_agent.orchestrator | AGENT LOOP START. User message: /память
+15:57:01 | DEBUG   | travel_agent.orchestrator | History length: 9
+15:57:01 | DEBUG   | travel_agent.orchestrator | ============================================================
+15:57:01 | DEBUG   | travel_agent.orchestrator | 
+--- Iteration 1 ---
+15:57:17 | INFO    | travel_agent.orchestrator | 💬 Токены: 📥 41625 (всего 330945) | 📤 2146 (всего 10003) | ∑ 43771
+15:57:17 | DEBUG   | travel_agent.orchestrator | LLM response. Content: 
+
+Привет, Мартышка! 👋
+
+Я помню, что ты любишь ездить в **Турцию, в Анталью**.
+
+Также я вижу, что мы сейчас занимаемся поиском тура на неделю (17–24 сентября) для двоих из Москвы. Я уже получил результаты поиска по авиабилетам и отелям.
+
+Хочешь, покажу лучшие варианты перелета и проживания? ✈️🏨
+15:57:17 | DEBUG   | travel_agent.orchestrator | LLM response. Tool calls count: 0
+15:57:17 | DEBUG   | travel_agent.orchestrator | Async agent loop completed in 1 iterations
+15:57:17 | INFO    | travel_agent.orchestrator | ✅ Цикл завершён. Расход: 📥 330945 | 📤 10003 | ∑ 340948
+15:57:17 | INFO    | travel_agent.cli          | ⏱ 15.9s | 🔧 —
