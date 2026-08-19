@@ -1,12 +1,11 @@
 """
 BaseAgent — движок агента с циклом tool-calling.
-Version: 5.2.0
+Version: 5.3.0
 Description:
 - Основной цикл агента (chat.completions API)
 - Логирование токенов и времени через UsageTracker
-- Красивый вывод tool_calls в консоль (с обрезкой длинных args)
-- Полный DEBUG-трейс в logs.txt
-- Обработка пустых и обрезанных ответов модели
+- Обработка пустых ответов модели
+- БЕЗ лишней CLI-логики, размышлений, истории
 """
 import json
 import logging
@@ -50,8 +49,7 @@ class BaseAgent:
     def __init__(
         self,
         client,
-        folder_id: str,
-        model: str,
+        model_uri: str,
         system_prompt: str,
         tools_schema: Optional[list] = None,
         tool_router: Optional[dict] = None,
@@ -65,8 +63,7 @@ class BaseAgent:
 
         Args:
             client: OpenAI-клиент для Яндекс AI Studio
-            folder_id: Yandex folder ID
-            model: имя модели (например, 'yandexgpt/latest')
+            model_uri: полный URI модели (gpt://{folder_id}/{model})
             system_prompt: системный промпт
             tools_schema: список JSON-схем инструментов
             tool_router: словарь {имя_инструмента: функция}
@@ -76,9 +73,7 @@ class BaseAgent:
             max_tokens: максимум исходящих токенов
         """
         self.client = client
-        self.folder_id = folder_id
-        self.model_uri = self._build_model_uri(model)
-        self.model_name = model
+        self.model_uri = model_uri
         self.system_prompt = system_prompt
         self.tools_schema = tools_schema or []
         self.tool_router = tool_router or {}
@@ -87,31 +82,25 @@ class BaseAgent:
         self.temperature = temperature
         self.max_tokens = max_tokens
 
-    def _build_model_uri(self, model: str) -> str:
-        """Формирует полный model URI для Яндекс API: gpt://{folder_id}/{model}."""
-        if model.startswith("gpt://") or model.startswith("ds://"):
-            return model
-        return f"gpt://{self.folder_id}/{model}"
-
-    def run(self, user_message: str, history: List[Dict] = None, max_iterations: int = 10) -> str:
+    def run(self, user_message: str, max_iterations: int = 10) -> str:
         """
         Запускает основной цикл агента.
 
         Args:
             user_message: сообщение пользователя
-            history: история диалога (если пустая — создаётся заново с system_prompt)
             max_iterations: максимум итераций цикла tool-calling
 
         Returns:
             Финальный текстовый ответ агента.
         """
-        history = history or []
-        if not history:
-            history.append({"role": "system", "content": self.system_prompt})
-        history.append({"role": "user", "content": user_message})
+        # История создаётся заново для каждого вызова - агент stateless
+        history: List[Dict] = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": user_message},
+        ]
 
         session_start = time.time()
-        logger.info(f"🤖 [{self.role_name}] model={self.model_name} (uri={self.model_uri})")
+        logger.info(f"🤖 [{self.role_name}] model={self.model_uri}")
 
         for i in range(max_iterations):
             logger.info(f"  [{self.role_name}] iteration {i + 1}/{max_iterations}")
@@ -150,14 +139,7 @@ class BaseAgent:
             )
 
             # ============================================================
-            # 3. Размышления модели (reasoning перед tool_calls)
-            # ============================================================
-            if msg.content and msg.tool_calls:
-                short_reason = " ".join(msg.content.split())[:140]
-                logger.info(f"    💭 {short_reason}...")
-
-            # ============================================================
-            # 4. Финальный ответ (без инструментов)
+            # 3. Финальный ответ (без инструментов)
             # ============================================================
             if finish_reason == "stop" and not msg.tool_calls:
                 content = msg.content or ""
@@ -174,45 +156,24 @@ class BaseAgent:
                 return content
 
             # ============================================================
-            # 5. Ответ обрезан по длине
-            # ============================================================
-            if finish_reason == "length" and not msg.tool_calls:
-                logger.warning(f"⚠️ [{self.role_name}] ответ обрезан — продолжаю...")
-                history.append({"role": "assistant", "content": msg.content or ""})
-                history.append({
-                    "role": "user",
-                    "content": "[Система: предыдущий ответ был обрезан по длине. Продолжи ровно с места остановки, не повторяя уже написанное.]",
-                })
-                continue
-
-            # ============================================================
-            # 6. Выполнение tool_calls
+            # 4. Выполнение tool_calls
             # ============================================================
             if msg.tool_calls:
                 # Сохраняем сообщение с tool_calls в историю
                 history.append(msg.model_dump())
 
                 for tc in msg.tool_calls:
-                    # --- 6.1 Парсинг аргументов ---
+                    # --- 4.1 Парсинг аргументов ---
                     try:
                         args = json.loads(tc.function.arguments or "{}")
                     except json.JSONDecodeError:
                         args = {}
 
-                    # --- 6.2 Красивый вывод в консоль (с обрезкой) ---
+                    # --- 4.2 Логирование вызова инструмента ---
                     short_args_parts = []
                     for k, v in args.items():
                         sv = str(v)
-                        if k == "code":
-                            # Код обрезаем особенно сильно — это самый шумный аргумент
-                            short_args_parts.append(f"{k}='<{len(sv)} симв.>'")
-                        elif k == "args_json":
-                            # JSON-строка туту — тоже может быть длинной
-                            if len(sv) > 100:
-                                short_args_parts.append(f"{k}='{sv[:97]}...'")
-                            else:
-                                short_args_parts.append(f"{k}='{sv}'")
-                        elif len(sv) > 80:
+                        if len(sv) > 80:
                             short_args_parts.append(f"{k}={sv[:77]}...")
                         else:
                             short_args_parts.append(f"{k}={sv!r}")
@@ -224,7 +185,7 @@ class BaseAgent:
                     # Полный лог аргументов — только в файл (DEBUG)
                     logger.debug(f"    FULL ARGS: {json.dumps(args, ensure_ascii=False)[:2000]}")
 
-                    # --- 6.3 Выполнение инструмента ---
+                    # --- 4.3 Выполнение инструмента ---
                     func = self.tool_router.get(tc.function.name)
                     if func:
                         try:
@@ -243,7 +204,7 @@ class BaseAgent:
                     # Полный результат — в файл (DEBUG)
                     logger.debug(f"       FULL RESULT ({len(result_str)} симв.):\n{result_str[:3000]}")
 
-                    # --- 6.4 Добавляем результат в историю ---
+                    # --- 4.4 Добавляем результат в историю ---
                     history.append({
                         "role": "tool",
                         "tool_call_id": tc.id,

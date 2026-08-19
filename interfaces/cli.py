@@ -1,6 +1,6 @@
 """
 interfaces/cli.py — Консольный интерфейс.
-Version: 5.2.0
+Version: 5.3.0
 """
 import logging
 import sys
@@ -72,13 +72,14 @@ def run_cli():
     print(f"🧳 Tutu Travel Agent v{settings.system_version} (CLI)")
     print(f"   Router: {settings.yandex_model_router}")
     print(f"   Agent:  {settings.yandex_model_agent}")
+    print(f"   General:{settings.yandex_model_general}")
     print(f"   MCP:    {len(mcp_client.tool_names())} инструментов")
     print(f"   Log:    {settings.log_file}")
     print("   Команды: /exit /clear /usage")
     print("=" * 60)
     logger.info(f"CLI Session started | version={settings.system_version}")
 
-    history = []
+    # История НЕ передаётся в оркестратор - каждый запрос stateless
     while True:
         try:
             user_input = input("\n👤 Вы: ").strip()
@@ -90,16 +91,14 @@ def run_cli():
                 print("👋 До свидания!")
                 break
             if cmd == "/clear":
-                history = []
-                print("🗑️ История очищена")
+                print("🗑️ История очищена (но агент всё равно stateless)")
                 continue
             if cmd == "/usage":
                 print(f"\n{orchestrator.usage.summary()}")
                 continue
 
-            response = orchestrator.route_and_execute(user_input, history)
-            history.append({"role": "user", "content": user_input})
-            history.append({"role": "assistant", "content": response})
+            # Оркестратор больше не принимает history - он stateless
+            response = orchestrator.route_and_execute(user_input, history=[])
             print(f"\n🤖 Агент:\n{response}")
         except KeyboardInterrupt:
             print(f"\n\n{orchestrator.usage.summary()}")

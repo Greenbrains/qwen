@@ -1,8 +1,11 @@
 """
 Orchestrator — мультиагентный роутер.
-Version: 5.2.0
-Description: Роутер выбирает навык, исполнитель запускается с одной и той же
-моделью (yandex_model_agent). Никакого переключения по навыку — это было ошибкой.
+Version: 5.3.0
+Description: 
+- Роутер выбирает навык (touragent, marketingskills, general)
+- Для general используется модель yandex_model_general БЕЗ инструментов
+- Для touragent/marketingskills используется yandex_model_agent С инструментами
+- Дата передаётся в системный промпт только для touragent/marketingskills
 """
 import logging
 from typing import List
@@ -28,15 +31,15 @@ class Orchestrator:
     def route_and_execute(self, user_message: str, history: List[dict]) -> str:
         # ============== 1. РОУТИНГ ==============
         router_prompt = (
-            "Ты роутер. Выбери навык из: touragent, marketingskills, general. "
-            "Если про путешествия/билеты/отели — touragent. "
-            "Если про маркетинг/SEO/копирайтинг/анализ конкурентов/презентации — marketingskills. "
-            "Иначе general. Ответь ТОЛЬКО одним словом."
+            "Ты роутер. Выбери навык из: touragent, marketingskills, general.\n"
+            "- Если про путешествия/билеты/отели/трансферы/как добраться — touragent.\n"
+            "- Если про маркетинг/SEO/копирайтинг/анализ конкурентов/презентации PPTX — marketingskills.\n"
+            "- Иначе general (простые вопросы, фото, тексты без инструментов).\n"
+            "Ответь ТОЛЬКО одним словом."
         )
         router = BaseAgent(
             client=self.client,
-            folder_id=self.folder_id,
-            model=self.settings.yandex_model_router,
+            model_uri=self.settings.get_model_uri(self.settings.yandex_model_router),
             system_prompt=router_prompt,
             tools_schema=[],
             tool_router={},
@@ -49,35 +52,43 @@ class Orchestrator:
         logger.info(f"🧭 Оркестратор выбрал навык: {skill_name}")
 
         # ============== 2. ПОДГОТОВКА ИСПОЛНИТЕЛЯ ==============
-        # Сначала загружаем навык
-        skill_instructions = load_skill(skill_name)
+        if skill_name == "general":
+            # === General: простой запрос без инструментов ===
+            # Модель сама отвечает, дата не нужна
+            sys_prompt = (
+                "Ты вежливый ИИ-ассистент. Отвечай кратко и по делу на русском языке.\n"
+                "У тебя нет доступа к инструментам — отвечай своими знаниями."
+            )
+            tools_schema = []
+            tool_router = {}
+            model_uri = self.settings.get_model_uri(self.settings.yandex_model_general)
+        else:
+            # === Touragent или Marketingskills: с инструментами и датой ===
+            skill_instructions = load_skill(skill_name)
+            skill_context = skill_instructions + (
+                "\n\n> ⚠️ ВАЖНО: текст этого навыка УЖЕ встроен в системный промпт. "
+                "НЕ вызывай load_skill с этим именем повторно."
+            )
 
-        # Предупреждение, чтобы не дублировать load_skill
-        skill_context = skill_instructions + (
-            "\n\n> ⚠️ ВАЖНО: текст этого навыка УЖЕ встроен в системный промпт. "
-            "НЕ вызывай load_skill с этим именем повторно."
-        )
+            tools_schema, tool_router = self.registry.get_tools_for_skill(skill_name)
 
-        tools_schema, tool_router = self.registry.get_tools_for_skill(skill_name)
-
-        sys_prompt = self.prompt_loader.render_system_prompt(
-            mcp_catalog_markdown=self.mcp_client.tools_catalog_markdown(),
-            skill_context=skill_context,
-        )
+            sys_prompt = self.prompt_loader.render_system_prompt(
+                mcp_catalog_markdown=self.mcp_client.tools_catalog_markdown(),
+                skill_context=skill_context,
+            )
+            model_uri = self.settings.get_model_uri(self.settings.yandex_model_agent)
 
         # ============== 3. ЗАПУСК ИСПОЛНИТЕЛЯ ==============
-        # ВСЕГДА используем одну и ту же модель (yandex_model_agent)
         executor = BaseAgent(
             client=self.client,
-            folder_id=self.folder_id,
-            model=self.settings.yandex_model_agent,
+            model_uri=model_uri,
             system_prompt=sys_prompt,
             tools_schema=tools_schema,
             tool_router=tool_router,
             usage_tracker=self.usage,
             role_name="executor",
         )
-        response = executor.run(user_message, history=history)
+        response = executor.run(user_message)
 
         logger.info(f"\n{self.usage.summary()}")
         return response
