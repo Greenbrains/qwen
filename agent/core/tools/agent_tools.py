@@ -1,13 +1,14 @@
 """
-Базовые инструменты агента и инструменты Яндекс AI Studio.
-Версия: 2.2.0
-Описание: Декоратор @tool, локальные инструменты (bash, file), YandexTools (Files API, Code Interpreter, Web Search).
+📋 agent_tools.py — фабрика инструментов.
+Version: 5.2.0
+Description: Декоратор @tool, локальные инструменты, YandexTools (с folder_id для model_uri).
 """
 import inspect
 import json
 import logging
 import re
 import subprocess
+import time as _time
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
@@ -18,7 +19,6 @@ logger = logging.getLogger("agent.tools")
 
 
 def _short_args(args: dict, max_total: int = 60) -> str:
-    """Форматирует аргументы для логирования."""
     if not args:
         return ""
     parts = []
@@ -31,16 +31,7 @@ def _short_args(args: dict, max_total: int = 60) -> str:
     return s if len(s) <= max_total else s[: max_total - 3] + "..."
 
 
-def _short_text(text: str, limit: int = 120) -> str:
-    """Обрезает текст до одной строки с лимитом символов."""
-    if not text:
-        return ""
-    one_line = " ".join(text.split())
-    return one_line if len(one_line) <= limit else one_line[:limit] + "…"
-
-
 def tool(func=None, *, name: str = None, description: str = None):
-    """Декоратор для регистрации функции как инструмента LLM с генерацией JSON-схемы."""
     def decorator(fn):
         tool_name = name or fn.__name__
         tool_description = description or (fn.__doc__ or "").strip()
@@ -65,7 +56,6 @@ def tool(func=None, *, name: str = None, description: str = None):
 
 
 def _extract_parameters_schema(fn) -> dict:
-    """Извлекает JSON-схему из сигнатуры функции и type hints."""
     sig = inspect.signature(fn)
     try:
         hints = get_type_hints(fn, include_extras=True)
@@ -95,33 +85,35 @@ def _extract_parameters_schema(fn) -> dict:
 
 
 def _python_type_to_json(python_type) -> str:
-    """Маппит Python type hints на JSON schema типы."""
     origin = get_origin(python_type)
     if origin is not None:
         args = get_args(python_type)
         non_none = [a for a in args if a is not type(None)]
         if len(non_none) == 1:
             return _python_type_to_json(non_none[0])
-    type_map = {str: "string", int: "integer", float: "number", bool: "boolean", list: "array", dict: "object"}
+    type_map = {
+        str: "string", int: "integer", float: "number",
+        bool: "boolean", list: "array", dict: "object",
+    }
     return type_map.get(python_type, "string")
 
 
 def collect_tools(*tool_functions) -> list:
-    """Возвращает список JSON-схем для поля tools в API."""
     return [fn._tool_schema for fn in tool_functions if hasattr(fn, "_tool_schema")]
 
 
 def create_tool_router(*tool_functions) -> dict:
-    """Возвращает словарь {имя_инструмента: функция} для выполнения tool_calls."""
     return {fn._tool_name: fn for fn in tool_functions if hasattr(fn, "_tool_name")}
 
 
+# ============================================================
+# Скиллы
+# ============================================================
 SKILLS_ROOT = Path(".agents/skills")
 SKILLS_CATALOG_FILE = SKILLS_ROOT / "SKILL.md"
 
 
 def load_skills_catalog() -> str:
-    """Читает файл каталога навыков или возвращает список доступных навыков."""
     if SKILLS_CATALOG_FILE.exists():
         return SKILLS_CATALOG_FILE.read_text(encoding="utf-8")
     if SKILLS_ROOT.exists():
@@ -133,9 +125,9 @@ def load_skills_catalog() -> str:
 
 @tool
 def load_skill(
-    skill_name: Annotated[str, "Имя навыка из каталога, напр. 'touragent'. Пусто — вернуть каталог всех навыков."] = ""
+    skill_name: Annotated[str, "Имя навыка из каталога, напр. 'touragent'. Пусто — вернуть каталог всех навыков."] = "",
 ) -> str:
-    """Загружает инструкцию навыка из .agents/skills/<name>/<name>.md. Без аргумента возвращает каталог."""
+    """Загружает инструкцию навыка из .agents/skills/<name>/<name>.md."""
     if not skill_name:
         return load_skills_catalog()
     skill_path = SKILLS_ROOT / skill_name / f"{skill_name}.md"
@@ -144,9 +136,11 @@ def load_skill(
     return f"❌ Навык '{skill_name}' не найден. Вызови load_skill() без аргумента для списка."
 
 
+# ============================================================
+# Локальные инструменты
+# ============================================================
 @tool
 def bash_execute(command: Annotated[str, "Bash-команда для локального выполнения."]) -> str:
-    """Выполняет bash-команду локально и возвращает stdout/stderr."""
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=60)
         if result.returncode == 0:
@@ -160,7 +154,6 @@ def bash_execute(command: Annotated[str, "Bash-команда для локал�
 
 @tool
 def file_read(file_path: Annotated[str, "Путь к локальному файлу для чтения."]) -> str:
-    """Читает содержимое локального файла и возвращает его текст."""
     path = Path(file_path)
     if path.exists():
         return path.read_text(encoding="utf-8")
@@ -172,25 +165,32 @@ def file_write(
     file_path: Annotated[str, "Путь к локальному файлу для записи."],
     content: Annotated[str, "Содержимое для записи в файл."],
 ) -> str:
-    """Записывает содержимое в локальный файл, создавая директории при необходимости."""
     path = Path(file_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
     return f"✅ Файл сохранён: {file_path}"
 
 
+# ============================================================
+# YandexTools — с folder_id для правильного model_uri
+# ============================================================
 class YandexTools:
-    """Инструменты, требующие OpenAI-клиент к Яндекс AI Studio."""
+    """Инструменты Яндекс AI Studio.
+    
+    ВАЖНО: принимает folder_id, чтобы формировать полный URI
+    gpt://{folder_id}/{model_name} — обязательный формат для API Яндекса.
+    """
 
-    def __init__(self, client, model_name: str):
-        """Инициализация с клиентом и именем модели."""
+    def __init__(self, client, folder_id: str, model_name: str = "qwen3.6-35b-a3b/latest"):
         self.client = client
+        self.folder_id = folder_id
         self.model_name = model_name
+        # КЛЮЧЕВОЕ: полный URI для всех вызовов API
+        self.model_uri = f"gpt://{folder_id}/{model_name}"
         self.output_dir = Path("output")
         self.output_dir.mkdir(exist_ok=True)
 
     def _save_yandex_file(self, file_id: str, suggested_name: str = None) -> str:
-        """Скачивает и сохраняет файл из Yandex Files API."""
         try:
             file_content = self.client.files.content(file_id)
             if suggested_name:
@@ -209,22 +209,16 @@ class YandexTools:
     @tool
     def upload_file(
         self,
-        local_path: Annotated[str, "Путь к локальному файлу для загрузки в Яндекс AI Studio"],
-        purpose: Annotated[str, "'user_data' для Code Interpreter, 'assistants' для Vector Store"],
+        local_path: Annotated[str, "Путь к локальному файлу"],
+        purpose: Annotated[str, "'user_data' для Code Interpreter"],
     ) -> str:
-        """Загружает файл в Яндекс AI Studio Files API и возвращает file_id."""
         path = Path(local_path)
         if not path.exists():
             return f"❌ Файл не найден: {local_path}"
         try:
             with open(path, "rb") as f:
                 uploaded = self.client.files.create(file=f, purpose=purpose)
-            return (
-                f"✅ Файл загружен:\n"
-                f"- Имя: {path.name}\n"
-                f"- File ID: {uploaded.id}\n"
-                f"- Размер: {uploaded.bytes} bytes"
-            )
+            return f"✅ Файл загружен:\n- Имя: {path.name}\n- File ID: {uploaded.id}"
         except Exception as e:
             return f"❌ Ошибка загрузки: {str(e)}"
 
@@ -232,27 +226,25 @@ class YandexTools:
     def download_file(
         self,
         file_id: Annotated[str, "Идентификатор файла в Files API"],
-        local_path: Annotated[str, "Локальный путь для сохранения файла"],
+        local_path: Annotated[str, "Локальный путь для сохранения"],
     ) -> str:
-        """Скачивает файл из Яндекс AI Studio Files API по file_id."""
         try:
             file_content = self.client.files.content(file_id)
             path = Path(local_path)
             path.parent.mkdir(parents=True, exist_ok=True)
             with open(path, "wb") as f:
                 f.write(file_content.read())
-            return f"✅ Файл скачан и сохранён: {local_path}"
+            return f"✅ Файл скачан: {local_path}"
         except Exception as e:
             return f"❌ Ошибка скачивания: {str(e)}"
 
     @tool
     def list_files(self) -> str:
-        """Возвращает список всех загруженных файлов в Files API."""
         try:
             files = self.client.files.list()
             if not files.data:
-                return " Список файлов пуст"
-            result = " Загруженные файлы:\n"
+                return "📭 Список файлов пуст"
+            result = "📋 Загруженные файлы:\n"
             for file in files.data:
                 result += f"- {file.filename} (ID: {file.id}, {file.bytes} bytes)\n"
             return result
@@ -262,97 +254,130 @@ class YandexTools:
     @tool
     def execute_code(
         self,
-        code: Annotated[str, "Python-код для выполнения в изолированном контейнере"],
-        file_ids: Annotated[list, "Список file_id файлов, нужных для выполнения кода"] = None,
+        code: Annotated[str, "Python-код для выполнения"],
+        file_ids: Annotated[list, "Список file_id"] = None,
     ) -> str:
-        """Выполняет Python-код в изолированном контейнере Code Interpreter."""
+        """Выполняет Python-код через Code Interpreter (streaming + polling)."""
         try:
             container_config = {"type": "auto"}
             if file_ids:
                 container_config["file_ids"] = file_ids
-            response = self.client.responses.create(
-                model=self.model_name,
-                instructions="Выполни этот Python-код и верни результат",
+
+            stream = self.client.responses.create(
+                model=self.model_uri,  # ← ПОЛНЫЙ URI
+                instructions=(
+                    "Ты Python-программист. Выполни код. "
+                    "Файлы сохраняй с простым именем ('presentation.pptx'), без пути."
+                ),
                 input=code,
                 tools=[{"type": "code_interpreter", "container": container_config}],
+                stream=True,
             )
+
+            resp_id = None
+            for event in stream:
+                if getattr(event, "type", None) == "response.in_progress":
+                    resp_id = event.response.id
+                    break
+            if not resp_id:
+                return "❌ Code Interpreter: не получен response ID"
+
+            logger.info(f"Code Interpreter: task={resp_id}, polling...")
+
+            max_wait = 180
+            waited = 0
+            response = None
+            while waited < max_wait:
+                response = self.client.responses.retrieve(resp_id)
+                status = getattr(response, "status", None)
+                if status in ("completed", "failed", "cancelled"):
+                    break
+                _time.sleep(2)
+                waited += 2
+
+            if response is None or getattr(response, "status", None) != "completed":
+                return f"❌ Code Interpreter status: {getattr(response, 'status', 'unknown')}"
+
             result_parts, downloaded = [], []
             for item in response.output:
-                if item.type == "code_interpreter_call":
-                    result_parts.append(f"```python\n{item.code}\n```")
-                    for out in item.outputs:
-                        if out.logs:
-                            result_parts.append(f"**Вывод:**\n```\n{out.logs}\n```")
-                elif item.type == "message":
-                    for content in item.content:
-                        if content.type == "output_text":
-                            result_parts.append(content.text)
-                        if getattr(content, "annotations", None):
-                            for ann in content.annotations:
-                                if ann.type == "container_file_citation":
-                                    lp = self._save_yandex_file(ann.file_id, ann.filename)
+                if getattr(item, "type", None) == "code_interpreter_call":
+                    result_parts.append(f"```python\n{getattr(item, 'code', '')}\n```")
+                    for out in getattr(item, "outputs", []) or []:
+                        if getattr(out, "logs", ""):
+                            result_parts.append(f"**Вывод:**\n```\n{out.logs.strip()}\n```")
+                elif getattr(item, "type", None) == "message":
+                    for content in getattr(item, "content", []) or []:
+                        if getattr(content, "type", None) == "output_text":
+                            result_parts.append(getattr(content, "text", ""))
+                        for ann in getattr(content, "annotations", None) or []:
+                            if getattr(ann, "type", None) == "container_file_citation":
+                                fid = getattr(ann, "file_id", None)
+                                fn = getattr(ann, "filename", None)
+                                if fid:
+                                    lp = self._save_yandex_file(fid, fn)
                                     if not lp.startswith("ERROR"):
-                                        downloaded.append((ann.filename, lp))
+                                        downloaded.append((fn or fid, lp))
+
             if downloaded:
-                result_parts.append("\n\n**📎 Скачанные файлы:**")
+                result_parts.append("\n\n**📎 Скачанные файлы в output/:**")
                 for fn, lp in downloaded:
                     result_parts.append(f"- `{fn}` → `{lp}`")
-            return "\n\n".join(result_parts) if result_parts else "✅ Код выполнен (без вывода)"
+            else:
+                result_parts.append("\n\n_ℹ️ Файлы не созданы._")
+
+            return "\n\n".join(result_parts) if result_parts else "✅ Код выполнен"
         except Exception as e:
+            logger.exception("execute_code failed")
             return f"❌ Ошибка выполнения: {str(e)}"
 
     @tool
     def generate_image(
         self,
-        prompt: Annotated[str, "Текстовое описание изображения для генерации"],
-        size: Annotated[str, "Размер: '1024x1024', '1536x1024' или '1024x1536'"],
+        prompt: Annotated[str, "Текстовое описание"],
+        size: Annotated[str, "Размер: '1024x1024'"],
     ) -> str:
-        """Генерирует изображение и сохраняет его в output/."""
         try:
             response = self.client.responses.create(
-                model=self.model_name,
+                model=self.model_uri,  # ← ПОЛНЫЙ URI
                 input=prompt,
                 tools=[{"type": "image_generation", "size": size}],
             )
             for item in response.output:
-                if item.type == "image_generation_call":
-                    local_path = self._save_yandex_file(item.result, "image.png")
-                    return (
-                        f"✅ Изображение сгенерировано\n\n"
-                        f"**Локальный путь:** `{local_path}`\n"
-                        f"**File ID:** `{item.result}`"
-                    )
-            return "❌ Изображение не было сгенерировано"
+                if getattr(item, "type", None) == "image_generation_call":
+                    lp = self._save_yandex_file(getattr(item, "result"), "image.png")
+                    return f"✅ Изображение: `{lp}`"
+            return "❌ Не сгенерировано"
         except Exception as e:
-            return f"❌ Ошибка генерации: {str(e)}"
+            return f"❌ Ошибка: {str(e)}"
 
     @tool
     def web_search(
         self,
         query: Annotated[str, "Поисковый запрос"],
-        allowed_domains: Annotated[list, "До 5 доменов для ограничения поиска"] = None,
-        search_context_size: Annotated[str, "Полнота контекста: 'low', 'medium' или 'high'"] = "medium",
+        allowed_domains: Annotated[list, "До 5 доменов"] = None,
+        search_context_size: Annotated[str, "'low', 'medium' или 'high'"] = "medium",
     ) -> str:
-        """Ищет актуальную информацию в интернете через встроенный web_search Яндекса."""
         try:
             tool_config = {"type": "web_search", "search_context_size": search_context_size}
             if allowed_domains:
                 tool_config["filters"] = {"allowed_domains": allowed_domains[:5]}
             response = self.client.responses.create(
-                model=self.model_name,
+                model=self.model_uri,  # ← ПОЛНЫЙ URI
                 input=query,
                 tools=[tool_config],
                 temperature=0.3,
             )
             result_parts, sources = [], []
             for item in response.output:
-                if item.type == "message":
-                    for content in item.content:
-                        if content.type == "output_text":
-                            result_parts.append(content.text)
-                            for ann in getattr(content, "annotations", None) or []:
-                                if ann.type == "url_citation" and ann.url not in sources:
-                                    sources.append(ann.url)
+                if getattr(item, "type", None) == "message":
+                    for content in getattr(item, "content", []) or []:
+                        if getattr(content, "type", None) == "output_text":
+                            result_parts.append(getattr(content, "text", ""))
+                        for ann in getattr(content, "annotations", None) or []:
+                            if getattr(ann, "type", None) == "url_citation":
+                                url = getattr(ann, "url", None)
+                                if url and url not in sources:
+                                    sources.append(url)
             if sources:
                 result_parts.append("\n\n**Источники:**")
                 result_parts += [f"- {u}" for u in sources]
@@ -362,11 +387,15 @@ class YandexTools:
             return f"❌ Ошибка поиска: {str(e)}"
 
 
+# ============================================================
+# Реестр «навык → инструменты»
+# ============================================================
 SKILL_TOOLSETS = {
     "touragent": ["load_skill", "tutu_call", "file_write", "file_read"],
     "marketingskills": [
         "load_skill", "web_search", "execute_code",
-        "upload_file", "download_file", "list_files", "file_read", "file_write",
+        "upload_file", "download_file", "list_files",
+        "file_read", "file_write", "generate_image",
     ],
     "general": [
         "load_skill", "bash_execute", "file_read", "file_write",
@@ -377,7 +406,6 @@ SKILL_TOOLSETS = {
 
 
 def filter_tools_for_skill(all_tool_funcs, skill_name: str):
-    """Возвращает подмножество tool-функций, разрешённых для навыка."""
     allowed = SKILL_TOOLSETS.get(skill_name)
     if not allowed:
         return list(all_tool_funcs)

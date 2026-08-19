@@ -1,7 +1,8 @@
 """
 Orchestrator — мультиагентный роутер.
-Version: 5.1.0
-Description: Определяет навык по запросу и спавнит исполнителя с нужным контекстом.
+Version: 5.2.0
+Description: Роутер выбирает навык, исполнитель запускается с одной и той же
+моделью (yandex_model_agent). Никакого переключения по навыку — это было ошибкой.
 """
 import logging
 from typing import List
@@ -15,8 +16,6 @@ logger = logging.getLogger("agent.orchestrator")
 
 
 class Orchestrator:
-    """Роутер + спавнер исполнителей."""
-
     def __init__(self, client, folder_id: str, mcp_client, registry, settings):
         self.client = client
         self.folder_id = folder_id
@@ -24,7 +23,6 @@ class Orchestrator:
         self.registry = registry
         self.settings = settings
         self.prompt_loader = PromptLoader()
-        # Общий трекер токенов для всей сессии
         self.usage = UsageTracker()
 
     def route_and_execute(self, user_message: str, history: List[dict]) -> str:
@@ -32,7 +30,7 @@ class Orchestrator:
         router_prompt = (
             "Ты роутер. Выбери навык из: touragent, marketingskills, general. "
             "Если про путешествия/билеты/отели — touragent. "
-            "Если про маркетинг/SEO/копирайтинг — marketingskills. "
+            "Если про маркетинг/SEO/копирайтинг/анализ конкурентов/презентации — marketingskills. "
             "Иначе general. Ответь ТОЛЬКО одним словом."
         )
         router = BaseAgent(
@@ -51,15 +49,24 @@ class Orchestrator:
         logger.info(f"🧭 Оркестратор выбрал навык: {skill_name}")
 
         # ============== 2. ПОДГОТОВКА ИСПОЛНИТЕЛЯ ==============
+        # Сначала загружаем навык
         skill_instructions = load_skill(skill_name)
+
+        # Предупреждение, чтобы не дублировать load_skill
+        skill_context = skill_instructions + (
+            "\n\n> ⚠️ ВАЖНО: текст этого навыка УЖЕ встроен в системный промпт. "
+            "НЕ вызывай load_skill с этим именем повторно."
+        )
+
         tools_schema, tool_router = self.registry.get_tools_for_skill(skill_name)
 
         sys_prompt = self.prompt_loader.render_system_prompt(
             mcp_catalog_markdown=self.mcp_client.tools_catalog_markdown(),
-            skill_context=skill_instructions,
+            skill_context=skill_context,
         )
 
         # ============== 3. ЗАПУСК ИСПОЛНИТЕЛЯ ==============
+        # ВСЕГДА используем одну и ту же модель (yandex_model_agent)
         executor = BaseAgent(
             client=self.client,
             folder_id=self.folder_id,
@@ -72,6 +79,5 @@ class Orchestrator:
         )
         response = executor.run(user_message, history=history)
 
-        # Выводим сводку по сессии
         logger.info(f"\n{self.usage.summary()}")
         return response

@@ -225,6 +225,105 @@ MIT.
 - Разделяйте текст и обоснование: обоснование — для пользователя, в финальный копирайт оно не входит.
 
 ---
+# Под-навык: presentation (генерация презентаций PPTX)
+
+Name: presentation
+Description: Применяйте, когда пользователь просит создать презентацию, слайды, 
+pitch deck, «сделай презентацию», «PPTX», «PowerPoint», «слайды для клиента». 
+Всегда возвращает файл `.pptx` в папке `output/`.
+
+Metadata version: 1.0.0
+
+## Рабочий процесс
+
+### Шаг 1. Бриф презентации
+Сформулируйте: тема, количество слайдов (7-12 по умолчанию), ЦА, тон (формальный/продающий/обучающий).
+Если пользователь не указал — уточните или используйте разумные дефолты.
+
+### Шаг 2. (Опционально) Соберите факты через `web_search`
+Если нужны цифры рынка, статистика, цитаты — используйте `web_search`.
+Сохраняйте URL источников.
+
+### Шаг 3. Генерация PPTX через `execute_code`
+ВАЖНО: Используйте библиотеку `python-pptx`. В начале кода ОБЯЗАТЕЛЬНО:
+
+```python
+try:
+    from pptx import Presentation
+    from pptx.util import Inches, Pt, Emu
+    from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+    from pptx.dml.color import RGBColor
+except ImportError:
+    import subprocess
+    subprocess.run(["pip", "install", "-q", "python-pptx"])
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+    from pptx.enum.text import PP_ALIGN
+```
+
+#### Структура кода:
+
+```python
+prs = Presentation()
+prs.slide_width = Inches(13.333)
+prs.slide_height = Inches(7.5)
+
+# Титульный слайд
+slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank layout
+txBox = slide.shapes.add_textbox(Inches(1), Inches(2.5), Inches(11), Inches(2))
+tf = txBox.text_frame
+tf.text = "Заголовок презентации"
+tf.paragraphs[0].font.size = Pt(54)
+tf.paragraphs[0].font.bold = True
+tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+# Контентные слайды (повторить для каждого)
+for title, bullets in slides_content:
+    slide = prs.slides.add_slide(prs.slide_layouts[1])  # title + content
+    slide.shapes.title.text = title
+    body = slide.placeholders[1].text_frame
+    body.clear()
+    for bullet in bullets:
+        p = body.add_paragraph()
+        p.text = bullet
+        p.level = 0
+        p.font.size = Pt(24)
+
+# Сохранение — НЕ хардкодить путь!
+prs.save("presentation.pptx")
+print("presentation.pptx")
+```
+
+### Шаг 4. Верните результат пользователю
+Используйте ПУТЬ, возвращённый `execute_code` (формат `output/<имя>_<id>.pptx`).
+
+Пример финального ответа:
+
+```text
+✅ Презентация готова!
+
+📄 **Файл:** `output/presentation_abc123.pptx`
+
+📊 **Содержание (10 слайдов):**
+1. Титульный
+2. Проблема
+3. Решение
+4. Рынок
+5. Продукт
+6. Бизнес-модель
+7. Конкуренты
+8. Команда
+9. Roadmap
+10. CTA
+```
+
+## Ограничения
+
+- Всегда сохраняйте как `.pptx`, а НЕ `.md`
+- Не хардкодьте путь `output/` в коде — `execute_code` сам скачает артефакт
+- Кириллица в PPTX работает нормально (python-pptx использует Unicode)
+
+---
 
 # Под-навык: seo
 
@@ -300,3 +399,4 @@ except ImportError:
 - Фиксируйте точные слова клиентов.
 - Проверяйте по ходу: резюмируйте каждый раздел и подтверждайте.
 - Пропускайте неприменимое (например, Персоны для B2C).
+

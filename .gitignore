@@ -35,7 +35,6 @@ Thumbs.db
 .env.test
 .env.prod
 .env.backup
-.env.example
 .env_sample
 .env.default
 .env.local.example

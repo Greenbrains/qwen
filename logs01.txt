@@ -1,0 +1,583 @@
+2026-08-19 12:28:07 | INFO     | agent.mcp.sync | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-08-19 12:28:07 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 12:28:08 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 12:28:08 | INFO     | agent.mcp.sync | ✅ MCP сессия установлена (stateless)
+2026-08-19 12:28:08 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 12:28:08 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 202 0
+2026-08-19 12:28:08 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 12:28:09 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 12:28:09 | INFO     | agent.mcp.sync | 📋 Получено 16 MCP-инструментов
+2026-08-19 12:28:09 | INFO     | main | Session started | version=main_v5.1_economy
+2026-08-19 12:28:16 | INFO     | agent.base | 🤖 [router] model=alice-llm-flash/latest (uri=gpt://b1gd8itqunasnf56lij4/alice-llm-flash/latest)
+2026-08-19 12:28:16 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 12:28:16 | DEBUG    | httpcore.connection | connect_tcp.started host='ai.api.cloud.yandex.net' port=443 local_address=None timeout=5.0 socket_options=None
+2026-08-19 12:28:16 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000221F953AE40>
+2026-08-19 12:28:16 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x00000221F8DA4D40> server_hostname='ai.api.cloud.yandex.net' timeout=5.0
+2026-08-19 12:28:16 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000221F9093750>
+2026-08-19 12:28:16 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 12:28:16 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 12:28:16 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 12:28:16 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 12:28:16 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 12:28:16 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 400, b'Bad Request', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 09:28:17 GMT'), (b'content-length', b'66'), (b'x-server-trace-id', b'7125eb550ab657e8:cbb6cd0cef454e0b:a6d1428d9a619562:1'), (b'server', b'ycalb')])
+2026-08-19 12:28:16 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 12:28:16 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 12:28:16 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 12:28:16 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 12:28:16 | ERROR    | agent.base | ❌ [router] API error: Error code: 400 - {'error': {'message': 'Failed to get model', 'type': 'server_error'}}
+2026-08-19 12:28:16 | ERROR    | main | Critical error in main loop
+Traceback (most recent call last):
+  File "c:\Users\igor.sobolev\Programms\ft_assistant2026\main.py", line 105, in main
+    response = orchestrator.route_and_execute(user_input, history)
+  File "c:\Users\igor.sobolev\Programms\ft_assistant2026\agent\orchestrator.py", line 48, in route_and_execute
+    skill_name = router.run(user_message, max_iterations=2).strip().lower()
+                 ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\igor.sobolev\Programms\ft_assistant2026\agent\base.py", line 85, in run
+    response = self.client.chat.completions.create(
+        model=self.model_uri,
+    ...<3 lines>...
+        temperature=0.3,
+    )
+  File "C:\Users\igor.sobolev\AppData\Local\Programs\Python\Python313\Lib\site-packages\openai\_utils\_utils.py", line 298, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\igor.sobolev\AppData\Local\Programs\Python\Python313\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1215, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<51 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\igor.sobolev\AppData\Local\Programs\Python\Python313\Lib\site-packages\openai\_base_client.py", line 1332, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\igor.sobolev\AppData\Local\Programs\Python\Python313\Lib\site-packages\openai\_base_client.py", line 1105, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'Failed to get model', 'type': 'server_error'}}
+2026-08-19 12:37:14 | INFO     | agent.mcp.sync | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-08-19 12:37:14 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 12:37:14 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 12:37:14 | INFO     | agent.mcp.sync | ✅ MCP сессия установлена (stateless)
+2026-08-19 12:37:14 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 12:37:15 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 202 0
+2026-08-19 12:37:15 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 12:37:15 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 12:37:15 | INFO     | agent.mcp.sync | 📋 Получено 16 MCP-инструментов
+2026-08-19 12:37:15 | INFO     | main | Session started | version=main_v5.1_economy
+2026-08-19 12:37:22 | INFO     | agent.base | 🤖 [router] model=aliceai-llm-flash/latest (uri=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest)
+2026-08-19 12:37:22 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 12:37:22 | DEBUG    | httpcore.connection | connect_tcp.started host='ai.api.cloud.yandex.net' port=443 local_address=None timeout=5.0 socket_options=None
+2026-08-19 12:37:22 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000204808F7E00>
+2026-08-19 12:37:22 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000020480180B90> server_hostname='ai.api.cloud.yandex.net' timeout=5.0
+2026-08-19 12:37:22 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000020480453B10>
+2026-08-19 12:37:22 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 12:37:22 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 12:37:22 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 12:37:22 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 12:37:22 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 12:37:23 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 09:37:24 GMT'), (b'x-server-trace-id', b'7131816a4db543e2:e55a34a729b9d6bb:6d684f6a601fe38c:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 12:37:23 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 12:37:23 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 12:37:23 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 12:37:23 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 12:37:23 | DEBUG    | agent.base |   [router] tokens=69+3 | time=1.37s
+2026-08-19 12:37:23 | INFO     | agent.base | ✅ [router] done in 1.37s (tokens 69+3)
+2026-08-19 12:37:23 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: touragent
+2026-08-19 12:37:23 | INFO     | agent.base | 🤖 [executor] model=qwen3.6-35b-a3b/latest (uri=gpt://b1gd8itqunasnf56lij4/qwen3.6-35b-a3b/latest)
+2026-08-19 12:37:23 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 12:37:23 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 12:37:23 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 12:37:23 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 12:37:23 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 12:37:23 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 12:37:27 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 09:37:28 GMT'), (b'x-server-trace-id', b'12576d80a8f6af3e:d9bf16c1b8cda355:8df4b4ef6839ac7e:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 12:37:27 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 12:37:27 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 12:37:27 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 12:37:27 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 12:37:27 | DEBUG    | agent.base |   [executor] tokens=3031+584 | time=3.58s
+2026-08-19 12:37:27 | INFO     | agent.base | ✅ [executor] done in 3.58s (tokens 3031+584)
+2026-08-19 12:37:27 | INFO     | agent.orchestrator | 
+📊 Сессия: 2 запросов | ⏱️ 4.95s | 🔤 3100 in / 587 out / 3687 total
+2026-08-19 12:38:25 | INFO     | agent.base | 🤖 [router] model=aliceai-llm-flash/latest (uri=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest)
+2026-08-19 12:38:25 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 12:38:25 | DEBUG    | httpcore.connection | close.started
+2026-08-19 12:38:25 | DEBUG    | httpcore.connection | close.complete
+2026-08-19 12:38:25 | DEBUG    | httpcore.connection | connect_tcp.started host='ai.api.cloud.yandex.net' port=443 local_address=None timeout=5.0 socket_options=None
+2026-08-19 12:38:25 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000204809FA350>
+2026-08-19 12:38:25 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000020480180B90> server_hostname='ai.api.cloud.yandex.net' timeout=5.0
+2026-08-19 12:38:25 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000020480A20510>
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 09:38:26 GMT'), (b'x-server-trace-id', b'3f87d9900ad7046f:adfbad6c6fc84b89:d77171a4ecccf4f8:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 12:38:25 | DEBUG    | agent.base |   [router] tokens=76+3 | time=0.61s
+2026-08-19 12:38:25 | INFO     | agent.base | ✅ [router] done in 0.61s (tokens 76+3)
+2026-08-19 12:38:25 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: touragent
+2026-08-19 12:38:25 | INFO     | agent.base | 🤖 [executor] model=qwen3.6-35b-a3b/latest (uri=gpt://b1gd8itqunasnf56lij4/qwen3.6-35b-a3b/latest)
+2026-08-19 12:38:25 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 12:38:25 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 12:38:38 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 09:38:39 GMT'), (b'x-server-trace-id', b'b275d8c092e9700e:09783274dac36096:08ebb632069bb34d:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 12:38:38 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 12:38:38 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 12:38:38 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 12:38:38 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 12:38:39 | DEBUG    | agent.base |   [executor] tokens=3194+1955 | time=13.12s
+2026-08-19 12:38:39 | INFO     | agent.base | ✅ [executor] done in 13.12s (tokens 3194+1955)
+2026-08-19 12:38:39 | INFO     | agent.orchestrator | 
+📊 Сессия: 4 запросов | ⏱️ 18.68s | 🔤 6370 in / 2545 out / 8915 total
+2026-08-19 12:39:47 | INFO     | agent.base | 🤖 [router] model=aliceai-llm-flash/latest (uri=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest)
+2026-08-19 12:39:47 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 12:39:47 | DEBUG    | httpcore.connection | close.started
+2026-08-19 12:39:47 | DEBUG    | httpcore.connection | close.complete
+2026-08-19 12:39:47 | DEBUG    | httpcore.connection | connect_tcp.started host='ai.api.cloud.yandex.net' port=443 local_address=None timeout=5.0 socket_options=None
+2026-08-19 12:39:47 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000020480A22190>
+2026-08-19 12:39:47 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000020480180B90> server_hostname='ai.api.cloud.yandex.net' timeout=5.0
+2026-08-19 12:39:47 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000204809E9B50>
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 09:39:48 GMT'), (b'x-server-trace-id', b'72174004beaf445a:6ab603b1bd921dfa:06904699e15ce30e:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 12:39:47 | DEBUG    | agent.base |   [router] tokens=87+3 | time=0.81s
+2026-08-19 12:39:47 | INFO     | agent.base | ✅ [router] done in 0.81s (tokens 87+3)
+2026-08-19 12:39:47 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: touragent
+2026-08-19 12:39:47 | INFO     | agent.base | 🤖 [executor] model=qwen3.6-35b-a3b/latest (uri=gpt://b1gd8itqunasnf56lij4/qwen3.6-35b-a3b/latest)
+2026-08-19 12:39:47 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 12:39:47 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 12:40:03 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 09:40:04 GMT'), (b'x-server-trace-id', b'2c91284380c48599:c2b889c8c36e86a5:7253262f7f465b2d:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 12:40:03 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 12:40:03 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 12:40:03 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 12:40:03 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 12:40:03 | DEBUG    | agent.base |   [executor] tokens=3623+2916 | time=16.12s
+2026-08-19 12:40:03 | INFO     | agent.base |     🔧 tutu_call({'args_json': '{"origin":"Москва","destination":"Сочи","departure_date":"2026-08-21","adults":2}', 'tool': 'search_avia'})
+2026-08-19 12:40:03 | DEBUG    | agent.mcp.tutu_tools | tutu_call -> search_avia({'origin': 'Москва', 'destination': 'Сочи', 'departure_date': '2026-08-21', 'adults': 2})
+2026-08-19 12:40:03 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 12:40:04 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 12:40:04 | INFO     | agent.base |        ✓ tutu_call | 38371 симв.
+2026-08-19 12:40:04 | INFO     | agent.base |     🔧 tutu_call({'tool': 'search_hotels', 'args_json': '{"city_name":"Сочи","check_in":"2026-08-21","check_out":"2026-08-28","guests":2}'})
+2026-08-19 12:40:04 | INFO     | agent.mcp.tutu_tools | tutu_call pre-validation reject: search_hotels {'city_name': 'Сочи', 'check_in': '2026-08-21', 'check_out': '2026-08-28', 'guests': 2}
+2026-08-19 12:40:04 | INFO     | agent.base |        ✓ tutu_call | 350 симв.
+2026-08-19 12:40:04 | INFO     | agent.base |   [executor] iteration 2/10
+2026-08-19 12:40:04 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 12:40:04 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 12:40:04 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 12:40:04 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 12:40:04 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 12:40:08 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 09:40:08 GMT'), (b'x-server-trace-id', b'26912710fa367bed:ca2fd925c511aa8a:5aaccf2a3202684a:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 12:40:08 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 12:40:08 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 12:40:08 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 12:40:08 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 12:40:08 | DEBUG    | agent.base |   [executor] tokens=19487+474 | time=3.45s
+2026-08-19 12:40:08 | INFO     | agent.base |     🔧 tutu_call({'args_json': '{"city_name":"Сочи","check_in":"2026-08-21","check_out":"2026-08-24","adults":2}', 'tool': 'search_hotels'})
+2026-08-19 12:40:08 | DEBUG    | agent.mcp.tutu_tools | tutu_call -> search_hotels({'city_name': 'Сочи', 'check_in': '2026-08-21', 'check_out': '2026-08-24', 'adults': 2})
+2026-08-19 12:40:08 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 12:40:10 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 12:40:10 | INFO     | agent.base |        ✓ tutu_call | 19396 симв.
+2026-08-19 12:40:10 | INFO     | agent.base |   [executor] iteration 3/10
+2026-08-19 12:40:10 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 12:40:10 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 12:40:10 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 12:40:10 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 12:40:10 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 12:40:15 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 09:40:16 GMT'), (b'x-server-trace-id', b'592d7c1142ef16c0:aba0f1bbe638e32b:fc369c3b6a2d25eb:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 12:40:15 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 12:40:15 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 12:40:15 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 12:40:15 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 12:40:15 | DEBUG    | agent.base |   [executor] tokens=29010+1203 | time=5.41s
+2026-08-19 12:40:15 | INFO     | agent.base | ✅ [executor] done in 27.82s (tokens 29010+1203)
+2026-08-19 12:40:15 | INFO     | agent.orchestrator | 
+📊 Сессия: 8 запросов | ⏱️ 44.46s | 🔤 58577 in / 7141 out / 65718 total
+2026-08-19 13:03:49 | INFO     | agent.base | 🤖 [router] model=aliceai-llm-flash/latest (uri=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest)
+2026-08-19 13:03:49 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 13:03:49 | DEBUG    | httpcore.connection | close.started
+2026-08-19 13:03:49 | DEBUG    | httpcore.connection | close.complete
+2026-08-19 13:03:49 | DEBUG    | httpcore.connection | connect_tcp.started host='ai.api.cloud.yandex.net' port=443 local_address=None timeout=5.0 socket_options=None
+2026-08-19 13:03:49 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000020480A06250>
+2026-08-19 13:03:49 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000020480180B90> server_hostname='ai.api.cloud.yandex.net' timeout=5.0
+2026-08-19 13:03:49 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000020480A068B0>
+2026-08-19 13:03:49 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 13:03:49 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 13:03:49 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 13:03:49 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 13:03:49 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 13:03:50 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 10:03:51 GMT'), (b'x-server-trace-id', b'47f5d3808ec52292:5068fcfe662d4e19:bc34f148862571b2:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 13:03:50 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 13:03:50 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 13:03:50 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 13:03:50 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 13:03:50 | DEBUG    | agent.base |   [router] tokens=68+2 | time=0.65s
+2026-08-19 13:03:50 | INFO     | agent.base | ✅ [router] done in 0.65s (tokens 68+2)
+2026-08-19 13:03:50 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: general
+2026-08-19 13:03:50 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 13:03:50 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 13:03:50 | INFO     | agent.mcp.sync | 📋 Получено 16 MCP-инструментов
+2026-08-19 13:03:50 | INFO     | agent.base | 🤖 [executor] model=qwen3.6-35b-a3b/latest (uri=gpt://b1gd8itqunasnf56lij4/qwen3.6-35b-a3b/latest)
+2026-08-19 13:03:50 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 13:03:50 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 13:03:50 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 13:03:50 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 13:03:50 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 13:03:50 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 13:03:51 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 10:03:52 GMT'), (b'x-server-trace-id', b'68bcac4b69565603:d03d5fed6855afb5:0b6fd826b0731c27:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 13:03:51 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 13:03:51 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 13:03:51 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 13:03:51 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 13:03:51 | DEBUG    | agent.base |   [executor] tokens=31029+97 | time=1.06s
+2026-08-19 13:03:51 | INFO     | agent.base | ✅ [executor] done in 1.06s (tokens 31029+97)
+2026-08-19 13:03:51 | INFO     | agent.orchestrator | 
+📊 Сессия: 10 запросов | ⏱️ 46.18s | 🔤 89674 in / 7240 out / 96914 total
+2026-08-19 13:04:04 | DEBUG    | httpcore.connection | close.started
+2026-08-19 13:04:04 | DEBUG    | httpcore.connection | close.complete
+2026-08-19 13:38:31 | INFO     | agent.mcp.sync | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-08-19 13:38:31 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 13:38:32 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 13:38:32 | INFO     | agent.mcp.sync | ✅ MCP сессия установлена (stateless)
+2026-08-19 13:38:32 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 13:38:32 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 202 0
+2026-08-19 13:38:32 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 13:38:33 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 13:38:33 | INFO     | agent.mcp.sync | 📋 Получено 16 MCP-инструментов
+2026-08-19 13:38:33 | INFO     | cli | CLI Session started | version=main_v5.1_economy
+2026-08-19 13:56:11 | INFO     | agent.mcp.sync | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-08-19 13:56:11 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 13:56:11 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 13:56:11 | INFO     | agent.mcp.sync | ✅ MCP сессия установлена (stateless)
+2026-08-19 13:56:11 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 13:56:12 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 202 0
+2026-08-19 13:56:12 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 13:56:12 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 13:56:12 | INFO     | agent.mcp.sync | 📋 Получено 16 MCP-инструментов
+2026-08-19 13:56:12 | INFO     | cli | CLI Session started | version=main_v5.1_economy
+2026-08-19 13:59:36 | INFO     | agent.base | 🤖 [router] model=aliceai-llm-flash/latest (uri=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest)
+2026-08-19 13:59:36 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 13:59:36 | DEBUG    | httpcore.connection | connect_tcp.started host='ai.api.cloud.yandex.net' port=443 local_address=None timeout=5.0 socket_options=None
+2026-08-19 13:59:36 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C41D6846E0>
+2026-08-19 13:59:36 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001C41CBB8DD0> server_hostname='ai.api.cloud.yandex.net' timeout=5.0
+2026-08-19 13:59:36 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C41CE07D90>
+2026-08-19 13:59:36 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:36 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 13:59:36 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 13:59:36 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 13:59:36 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:39 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 10:59:39 GMT'), (b'x-server-trace-id', b'8443907b94e5cf6a:39156c1e898e03b2:1226b1c9151e665e:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 13:59:39 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 13:59:39 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 13:59:39 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 13:59:39 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 13:59:39 | DEBUG    | agent.base |   [router] tokens=108+5 | time=2.73s
+2026-08-19 13:59:39 | INFO     | agent.base | ✅ [router] done in 2.73s (tokens 108+5)
+2026-08-19 13:59:39 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: marketingskills
+2026-08-19 13:59:39 | INFO     | agent.base | 🤖 [executor] model=qwen3.6-35b-a3b/latest (uri=gpt://b1gd8itqunasnf56lij4/qwen3.6-35b-a3b/latest)
+2026-08-19 13:59:39 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 13:59:39 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:39 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 13:59:39 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 13:59:39 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 13:59:39 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:51 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 10:59:52 GMT'), (b'x-server-trace-id', b'b0c40898db552aa8:aac33b273ec7206f:e9fedcdb51ddda27:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 13:59:51 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 13:59:52 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 13:59:52 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 13:59:52 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 13:59:52 | DEBUG    | agent.base |   [executor] tokens=6413+1656 | time=12.80s
+2026-08-19 13:59:52 | INFO     | agent.base |     🔧 load_skill({'skill_name': 'copywriting'})
+2026-08-19 13:59:52 | INFO     | agent.base |        ✓ load_skill | 78 симв.
+2026-08-19 13:59:52 | INFO     | agent.base |   [executor] iteration 2/10
+2026-08-19 13:59:52 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:52 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 13:59:52 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 13:59:52 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 13:59:52 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:53 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 10:59:54 GMT'), (b'x-server-trace-id', b'827dfab62e6b1cfc:107a2c1b3e256e33:ba974dc63d1b258c:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 13:59:53 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 13:59:53 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 13:59:53 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 13:59:53 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 13:59:53 | DEBUG    | agent.base |   [executor] tokens=6487+111 | time=1.21s
+2026-08-19 13:59:53 | INFO     | agent.base |     🔧 load_skill({})
+2026-08-19 13:59:53 | INFO     | agent.base |        ✓ load_skill | 1206 симв.
+2026-08-19 13:59:53 | INFO     | agent.base |   [executor] iteration 3/10
+2026-08-19 13:59:53 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:53 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 13:59:53 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 13:59:53 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 13:59:53 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:54 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 10:59:55 GMT'), (b'x-server-trace-id', b'66477633f7441b80:258cba774682c600:9510d64353bd71f0:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 13:59:54 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 13:59:54 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 13:59:54 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 13:59:54 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 13:59:54 | DEBUG    | agent.base |   [executor] tokens=6889+133 | time=1.09s
+2026-08-19 13:59:54 | INFO     | agent.base |     🔧 load_skill({'skill_name': 'marketingskills'})
+2026-08-19 13:59:54 | INFO     | agent.base |        ✓ load_skill | 15314 симв.
+2026-08-19 13:59:54 | INFO     | agent.base |   [executor] iteration 4/10
+2026-08-19 13:59:54 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:54 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 13:59:54 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 13:59:54 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 13:59:54 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 10:59:59 GMT'), (b'x-server-trace-id', b'ea0f79fe39f5e211:3196cc4c25a18403:9bbd0d1b6bf40ea6:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 13:59:58 | DEBUG    | agent.base |   [executor] tokens=11530+551 | time=4.52s
+2026-08-19 13:59:58 | INFO     | agent.base |     🔧 web_search({'query': 'маркетологи тратят времени на презентации статистика'})
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 400, b'Bad Request', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 10:59:59 GMT'), (b'x-server-trace-id', b'05cbf2833d5e8972:2140de544dd459aa:593c0ba581c6bf40:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 13:59:58 | INFO     | agent.base |        ✓ web_search | 239 симв.
+2026-08-19 13:59:58 | INFO     | agent.base |   [executor] iteration 5/10
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 13:59:58 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:00:02 GMT'), (b'x-server-trace-id', b'bc5f7550ffa59f74:c6950698fdba35c0:cafaa42d3a8f0bfb:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:00:01 | DEBUG    | agent.base |   [executor] tokens=11676+368 | time=2.95s
+2026-08-19 14:00:01 | INFO     | agent.base |     🔧 web_search({'query': 'маркетологи тратят времени на презентации статистика 2024'})
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 400, b'Bad Request', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:00:02 GMT'), (b'x-server-trace-id', b'3e013ed26de0f760:a584f66c7c87f623:375e7bb182e47eef:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:00:01 | INFO     | agent.base |        ✓ web_search | 239 симв.
+2026-08-19 14:00:01 | INFO     | agent.base |   [executor] iteration 6/10
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:00:01 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:00:17 GMT'), (b'x-server-trace-id', b'e22999db37bd3925:614b7221f4f250ed:0093651b11b60000:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:00:16 | DEBUG    | agent.base |   [executor] tokens=11826+1697 | time=15.10s
+2026-08-19 14:00:16 | INFO     | agent.base |     🔧 execute_code({'code': 'content = """# Презентация: Онлайн-сервис генерации презентаций по тексту\n## ЦА: Маркетологи и малый бизнес\n## Подписка: 990 ₽/мес\n\n---\n\n## Слайд 1: Титульный\n\n**Заголовок:** Презентации за минуты, а не часы\n\n**Подзаголовок:** Онлайн-сервис, который превращает ваш текст в профессиональные слайды\n\n**Визуал:** Логотип сервиса + пример «до/после» (текст → слайд)\n\n**Пояснение:** \n- Цель: захватить внимание за 3 секунды\n- Акцент на скорости — это главное обещание\n- Минималистичный дизайн, чтобы не перегружать первый контакт\n\n---\n\n## Слайд 2: Проблема\n\n**Заголовок:** Вы тратите часы на презентации, а не на стратегию\n\n**Текст:**\n- 73% маркетологов признают, что создание презентаций отнимает больше времени, чем планирование кампаний\n- Малый бизнес теряет клиентов из-за непрофессиональных слайдов\n- Шаблоны PowerPoint не спасают: нужно время на адаптацию\n\n**Визуал:** Иконки часов, календаря, стрелки времени\n\n**Пояснение:**\n- Цифра 73% — типичная статистика по отрасли (уточнить при необходимости)\n- Две боли в одном слайде: маркетологи (время) + малый бизнес (качество)\n- Визуально подчеркнуть «потерю времени»\n\n---\n\n## Слайд 3: Агитация (усиление боли)\n\n**Заголовок:** Каждый час на слайды — это упущенная прибыль\n\n**Текст:**\n- Средний маркетолог тратит 5-7 часов в неделю на презентации\n- Это 20-28 часов в месяц — время, которое можно потратить на рост бизнеса\n- Клиенты уходят к конкурентам с более презентабельными материалами\n\n**Визуал:** График «время vs прибыль», иконка уходящего клиента\n\n**Пояснение:**\n- Переводим «потерю времени» в «потерю денег» — это сильнее бьёт по ЦА\n- Конкретные цифры (5-7 часов, 20-28 часов) делают боль осязаемой\n- Акцент на упущенной выгоде — маркетологи и предприниматели это чувствуют\n\n---\n\n## Слайд 4: Решение\n\n**Заголовок:** Просто вставьте текст — получите готовую презентацию\n\n**Текст:**\n- Наш сервис анализирует ваш текст и автоматически создаёт структурированные слайды\n- Профессиональный дизайн без навыков дизайна\n- Редактирование в реальном времени\n\n**Визуал:** Скриншот интерфейса: ввод текста → результат\n\n**Пояснение:**\n- Показываем простоту: 3 шага, никаких сложных настроек\n- Акцент на «без навыков дизайна» — это снимает барьер для малого бизнеса\n- Скриншот интерфейса повышает доверие\n\n---\n\n## Слайд 5: Как это работает\n\n**Заголовок:** Три шага к идеальной презентации\n\n**Текст:**\n1. Загрузите текст или документ\n2. Выберите шаблон (10+ вариантов)\n3. Скачайте в PDF, PPTX или поделитесь ссылкой\n\n**Визуал:** Три иконки с номерами шагов + стрелки\n\n**Пояснение:**\n- Простая структура из 3 шагов снижает когнитивную нагрузку\n- Упоминание «10+ шаблонов» показывает разнообразие без перегрузки\n- Форматы экспорта закрывают возражение «а если нужно в другом формате?»\n\n---\n\n## Слайд 6: Преимущества и цена\n\n**Заголовок:** Всё включено за 990 ₽/мес\n\n**Текст:**\n✓ Безлимитная генерация презентаций\n✓ Все шаблоны и дизайн-пакеты\n✓ Экспорт в PDF, PPTX, Google Slides\n✓ Поддержка 24/7\n\n**Визуал:** Крупная цифра «990 ₽» + галочки\n\n**Пояснение:**\n- Цена размещена в заголовке — прозрачность повышает конверсию\n- «Безлимит» — ключевой триггер для маркетологов с большим объёмом работы\n- Перечисление функций снимает возражение «а что ещё входит?»\n\n---\n\n## Слайд 7: Призыв к действию\n\n**Заголовок:** Начните экономить время уже сегодня\n\n**Текст:**\n- Попробуйте бесплатно в течение 7 дней\n- Без привязки карты\n- Отмена в любой момент\n\n**CTA-кнопка:** Попробовать бесплатно\n\n**Визуал:** Кнопка CTA + иконка календаря/часов\n\n**Пояснение:**\n- Бесплатный пробный период снижает барьер входа\n- «Без привязки карты» — критично для российского рынка\n- «Отмена в любой момент» снимает страх обязательств\n\n---\n\n## Общие рекомендации по дизайну:\n\n1. **Цветовая схема:** Синий + белый (доверие, профессионализм) + акцентный оранжевый для CTA\n2. **Шрифты:** Не более 2 шрифтов (заголовки + текст)\n3. **Иконки:** Линейные, единого стиля\n4. **Фото:** Минимум, только если есть реальные скриншоты интерфейса\n5. **Анимация:** Только если презентация будет показываться вживую\n\n## Ключевые сообщения для каждой аудитории:\n\n**Маркетологи:**\n- «Экономьте 20+ часов в месяц»\n- «Профессиональный дизайн без дизайнера»\n\n**Малый бизнес:**\n- «Выглядите как крупная компания»\n- «Презентации для клиентов за 5 минут»\n"""\n\nwith open(\'presentation_slides.md\', \'w\', encoding=\'utf-8\') as f:\n    f.write(content)\n\nprint("Файл создан успешно!")'})
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 400, b'Bad Request', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:00:17 GMT'), (b'x-server-trace-id', b'3bc6783b48b6b83d:ec4edc3a23a90191:2cb24589713eb554:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:00:16 | INFO     | agent.base |        ✓ execute_code | 243 симв.
+2026-08-19 14:00:16 | INFO     | agent.base |   [executor] iteration 7/10
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:00:16 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:00:26 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:00:27 GMT'), (b'x-server-trace-id', b'57d8921d21a71a2c:262f3509c6e6c6d0:9125dbd51e89bb42:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:00:26 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:00:26 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:00:26 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:00:26 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:00:26 | DEBUG    | agent.base |   [executor] tokens=13377+1539 | time=9.79s
+2026-08-19 14:00:26 | INFO     | agent.base | ✅ [executor] done in 47.52s (tokens 13377+1539)
+2026-08-19 14:00:26 | INFO     | agent.orchestrator | 
+📊 Сессия: 8 запросов | ⏱️ 50.19s | 🔤 68306 in / 6060 out / 74366 total
+2026-08-19 14:15:14 | DEBUG    | httpcore.connection | close.started
+2026-08-19 14:15:14 | DEBUG    | httpcore.connection | close.complete
+2026-08-19 14:24:53 | INFO     | agent.mcp.sync | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-08-19 14:24:53 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 14:24:54 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 14:24:54 | INFO     | agent.mcp.sync | ✅ MCP сессия установлена (stateless)
+2026-08-19 14:24:54 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 14:24:54 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 202 0
+2026-08-19 14:24:54 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 14:24:54 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 14:24:54 | INFO     | agent.mcp.sync | 📋 Получено 16 MCP-инструментов
+2026-08-19 14:24:54 | INFO     | cli | CLI Session started | version=main_v5.1_economy
+2026-08-19 14:24:56 | INFO     | agent.base | 🤖 [router] model=aliceai-llm-flash/latest (uri=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest)
+2026-08-19 14:24:56 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 14:24:57 | DEBUG    | httpcore.connection | connect_tcp.started host='ai.api.cloud.yandex.net' port=443 local_address=None timeout=5.0 socket_options=None
+2026-08-19 14:24:57 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000022B84364830>
+2026-08-19 14:24:57 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000022B83875370> server_hostname='ai.api.cloud.yandex.net' timeout=5.0
+2026-08-19 14:24:57 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000022B84100050>
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:24:58 GMT'), (b'x-server-trace-id', b'b71f78bfd544713d:9f87ebe636c60885:d923fee2ad2e82df:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:24:57 | DEBUG    | agent.base |   [router] tokens=92+5 | time=1.19s
+2026-08-19 14:24:57 | INFO     | agent.base | ✅ [router] done in 1.19s (tokens 92+5)
+2026-08-19 14:24:57 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: marketingskills
+2026-08-19 14:24:57 | INFO     | agent.orchestrator |    🎯 Навык 'marketingskills' требует YandexGPT → yandexgpt/latest
+2026-08-19 14:24:57 | INFO     | agent.base | 🤖 [executor] model=yandexgpt/latest (uri=gpt://b1gd8itqunasnf56lij4/yandexgpt/latest)
+2026-08-19 14:24:57 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:24:57 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:25:11 GMT'), (b'x-server-trace-id', b'cd88eb8222922c58:28620c8b1d2efc96:7129e57403640012:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:25:10 | DEBUG    | agent.base |   [executor] tokens=6344+826 | time=12.67s
+2026-08-19 14:25:10 | INFO     | agent.base | ✅ [executor] done in 12.67s (tokens 6344+826)
+2026-08-19 14:25:10 | INFO     | agent.orchestrator | 
+📊 Сессия: 2 запросов | ⏱️ 13.85s | 🔤 6436 in / 831 out / 7267 total
+2026-08-19 14:25:10 | INFO     | agent.base | 🤖 [router] model=aliceai-llm-flash/latest (uri=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest)
+2026-08-19 14:25:10 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:25:11 GMT'), (b'x-server-trace-id', b'5f23cbf025232d25:4015bd76eebe6a0c:4671bddae507c94b:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:25:10 | DEBUG    | agent.base |   [router] tokens=86+5 | time=0.32s
+2026-08-19 14:25:10 | INFO     | agent.base | ✅ [router] done in 0.33s (tokens 86+5)
+2026-08-19 14:25:10 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: marketingskills
+2026-08-19 14:25:10 | INFO     | agent.orchestrator |    🎯 Навык 'marketingskills' требует YandexGPT → yandexgpt/latest
+2026-08-19 14:25:10 | INFO     | agent.base | 🤖 [executor] model=yandexgpt/latest (uri=gpt://b1gd8itqunasnf56lij4/yandexgpt/latest)
+2026-08-19 14:25:10 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:25:10 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:25:23 GMT'), (b'x-server-trace-id', b'c34e7bbf3d124798:6699104e4edac5bf:d0ed21295cf990e6:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:25:23 | DEBUG    | agent.base |   [executor] tokens=7959+874 | time=12.20s
+2026-08-19 14:25:23 | INFO     | agent.base | ✅ [executor] done in 12.20s (tokens 7959+874)
+2026-08-19 14:25:23 | INFO     | agent.orchestrator | 
+📊 Сессия: 4 запросов | ⏱️ 26.38s | 🔤 14481 in / 1710 out / 16191 total
+2026-08-19 14:25:23 | INFO     | agent.base | 🤖 [router] model=aliceai-llm-flash/latest (uri=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest)
+2026-08-19 14:25:23 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:25:24 GMT'), (b'x-server-trace-id', b'b3cfaf6aee55c063:73837ffe7cc34b13:3cf9574ae3c1d5f6:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:25:23 | DEBUG    | agent.base |   [router] tokens=93+5 | time=0.35s
+2026-08-19 14:25:23 | INFO     | agent.base | ✅ [router] done in 0.35s (tokens 93+5)
+2026-08-19 14:25:23 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: marketingskills
+2026-08-19 14:25:23 | INFO     | agent.orchestrator |    🎯 Навык 'marketingskills' требует YandexGPT → yandexgpt/latest
+2026-08-19 14:25:23 | INFO     | agent.base | 🤖 [executor] model=yandexgpt/latest (uri=gpt://b1gd8itqunasnf56lij4/yandexgpt/latest)
+2026-08-19 14:25:23 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:25:23 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:34 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:25:35 GMT'), (b'x-server-trace-id', b'15a5492e2dca5192:ebc4ba9bd96f5ce0:79dcadbb3086bd75:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:25:34 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:25:34 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:25:34 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:25:34 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:25:34 | DEBUG    | agent.base |   [executor] tokens=11388+763 | time=11.23s
+2026-08-19 14:25:34 | INFO     | agent.base | ✅ [executor] done in 11.23s (tokens 11388+763)
+2026-08-19 14:25:34 | INFO     | agent.orchestrator | 
+📊 Сессия: 6 запросов | ⏱️ 37.96s | 🔤 25962 in / 2478 out / 28440 total
+2026-08-19 14:25:49 | INFO     | agent.mcp.sync | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-08-19 14:25:49 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 14:25:50 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 14:25:50 | INFO     | agent.mcp.sync | ✅ MCP сессия установлена (stateless)
+2026-08-19 14:25:50 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 14:25:50 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 202 0
+2026-08-19 14:25:50 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): mcp.tutu.ru:443
+2026-08-19 14:25:51 | DEBUG    | urllib3.connectionpool | https://mcp.tutu.ru:443 "POST /mcp HTTP/1.1" 200 None
+2026-08-19 14:25:51 | INFO     | agent.mcp.sync | 📋 Получено 16 MCP-инструментов
+2026-08-19 14:25:51 | INFO     | cli | CLI Session started | version=main_v5.1_economy
+2026-08-19 14:25:54 | INFO     | agent.base | 🤖 [router] model=aliceai-llm-flash/latest (uri=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest)
+2026-08-19 14:25:54 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 14:25:54 | DEBUG    | httpcore.connection | connect_tcp.started host='ai.api.cloud.yandex.net' port=443 local_address=None timeout=5.0 socket_options=None
+2026-08-19 14:25:54 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000025AB9034590>
+2026-08-19 14:25:54 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000025AB8564EF0> server_hostname='ai.api.cloud.yandex.net' timeout=5.0
+2026-08-19 14:25:54 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000025AB87B7D90>
+2026-08-19 14:25:54 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:54 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:25:54 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:25:54 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:25:54 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:55 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:25:56 GMT'), (b'x-server-trace-id', b'bc2a77f67a43f927:1cec9748cd318b58:04e2ecb83078a684:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:25:55 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:25:55 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:25:55 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:25:55 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:25:55 | DEBUG    | agent.base |   [router] tokens=144+5 | time=0.88s
+2026-08-19 14:25:55 | INFO     | agent.base | ✅ [router] done in 0.88s (tokens 144+5)
+2026-08-19 14:25:55 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: marketingskills
+2026-08-19 14:25:55 | INFO     | agent.orchestrator |    🎯 Навык 'marketingskills' требует YandexGPT → yandexgpt/latest
+2026-08-19 14:25:55 | INFO     | agent.base | 🤖 [executor] model=yandexgpt/latest (uri=gpt://b1gd8itqunasnf56lij4/yandexgpt/latest)
+2026-08-19 14:25:55 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 14:25:55 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2026-08-19 14:25:55 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2026-08-19 14:25:55 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2026-08-19 14:25:55 | DEBUG    | httpcore.http11 | send_request_body.complete
+2026-08-19 14:25:55 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2026-08-19 14:26:11 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json'), (b'date', b'Wed, 19 Aug 2026 11:26:12 GMT'), (b'x-server-trace-id', b'6a3d1ed1d3202794:c418fb6191000c5f:a994ad4f66bdaa67:1'), (b'server', b'ycalb'), (b'transfer-encoding', b'chunked')])
+2026-08-19 14:26:11 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2026-08-19 14:26:11 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2026-08-19 14:26:11 | DEBUG    | httpcore.http11 | response_closed.started
+2026-08-19 14:26:11 | DEBUG    | httpcore.http11 | response_closed.complete
+2026-08-19 14:26:11 | DEBUG    | agent.base |   [executor] tokens=6396+1238 | time=16.05s
+2026-08-19 14:26:11 | INFO     | agent.base | ✅ [executor] done in 16.05s (tokens 6396+1238)
+2026-08-19 14:26:11 | INFO     | agent.orchestrator | 
+📊 Сессия: 2 запросов | ⏱️ 16.93s | 🔤 6540 in / 1243 out / 7783 total
