@@ -27,6 +27,7 @@ node_modules/
 *~
 .DS_Store
 Thumbs.db
+logs.txt 
 
 # Environment
 .env
@@ -35,49 +36,13 @@ Thumbs.db
 .env.test
 .env.prod
 .env.backup
+.env.example
 .env_sample
 .env.default
 .env.local.example
 .env.test.local
 .env.prod.local
 .env.backup.local
-
-# Editors
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-*.atom/
-.atom/
-*.vs/
-.vs/
-*.vim/
-.vim/
-*.emacs.d/
-.emacs.d/
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-Thumbs.db:encryptable
-*:Zone.Identifier
-desktop.ini
-
-# Project specific
-*.sqlite3
-*.db
-coverage/
-.coverage
-.pytest_cache/
-.tox/
-.hypothesis/
-.mypy_cache/
-.ipynb_checkpoints/
 
 # Docker
 .dockerenv
@@ -104,18 +69,6 @@ secret/
 *.pfx
 *.jks
 *.keystore
-
-# Documentation
-docs/_build/
-doc/_build/
-
-# Backup files
-*~
-*.bak
-*.backup
-*.orig
-*.rej
-*.py,cover
 
 # IDE specific
 nbproject/
@@ -153,16 +106,6 @@ nbproject/
 .ropeproject
 .ropeproject/
 
-# Virtual environments
-.venv/
-venv/
-env/
-ENV/
-.env/
-.env.d/
-.envs/
-.venvs/
-
 # Node.js specific
 node_modules/
 npm-debug.log
@@ -178,154 +121,10 @@ __pycache__/
 *.cache
 *.cached
 
-# Coverage reports
-coverage/
-.coverage
-*.coverage
-coverage.xml
-*.gcda
-*.gcno
-
 # Testing
 .tests/
 tests/.tests/
 .pytest_cache/
 .pytest_cache/
 
-# Distribution / packaging
-.Python
-*.so
-.libs
-.libs/
-*.tar.gz
-*.whl
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.cover/
-.cover/
-
-# Translations
-*.mo
-*.pot
-
-# Django
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask
-instance/
-.webassets-cache
-
-# Scrapy
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-Pipfile.lock
-
-# PEP 582
-__pypackages__/
-
-# Celery
-celerybeat-schedule
-celerybeat.pid
-
-# Sage
-.sage/
-.sage/
-
-# Environments
-.envrc
-.venvrc
-.venv/
-.venv/
-
-# conda
-environment.yml
-environment.yaml
-environment.lock
-environment.json
-
-# Anaconda
-anaconda-meta/
-anaconda-meta/
-
-# conda env
-env/
-envs/
-
-# mamba
-mamba-meta/
-mamba-meta/
-
-# poetry
-poetry.lock
-poetry.toml
-poetry/
-
-# pdm
-pdm.lock
-.pdm.toml
-.pdm-python
-
-# pip-tools
-requirements.txt
-requirements-dev.txt
-requirements-test.txt
-requirements-prod.txt
-requirements-staging.txt
-requirements-local.txt
-requirements-common.txt
-requirements.in
-
-# pip
-pip-log.txt
-pip-delete-this-directory.txt
-
-# setuptools
-.build/
-.build/
-
-# wheel
-.wheelhouse/
-.wheelhouse/
-
-# cx_Freeze
-build-exe/
-
-# PyInstaller
-*.dist-info/
-*.dist-info/
-
-# py2exe
-dist/
-build/
-
-# Original rules preserved
-*.log
-
-logs.txt
