@@ -1,186 +1,314 @@
-# 🚆 Tutu Travel Agent
+# 🧳 Travel Assistant `minibu` v1.0
 
-Интеллектуальный туристический ассистент на базе Yandex AI Studio (модель Qwen 3.6 35B‑A3B) и MCP‑сервера Туту.
-Агент решает реальные задачи путешественников: подбор мультимодальных маршрутов (поезд + самолёт + автобус),
-умное сравнение отелей, схемы вагонов с выбором места и готовые ссылки на бронирование.
-Работает с текстом (консоль, REST API) и голосом (WebSocket Realtime API).
+Консольный мультиагентный ИИ-ассистент туроператора, работающий через
+**MCP-сервер Туту** (`https://mcp.tutu.ru/mcp`) и **Yandex AI Studio**
+(OpenAI-совместимый API).
 
-**Ключевые свойства:**
-- Модель **не галлюцинирует** цены/даты/наличие мест — все факты берутся только из живого MCP‑сервера.
-- В системный промпт при старте сессии **инжектится текущая дата** — «завтра» всегда означает реальное завтра.
-- Строгие схемы параметров 16 инструментов зафиксированы в промптах и проверены автотестом (`main_tests.py`, 16/16 ✅).
+Проект реализует архитектуру **Orchestrator → Executor**: роутер выбирает
+подходящий навык, а исполнитель с ограниченным набором инструментов выполняет
+задачу пользователя. Данные отделены от кода: промпты в YAML, навыки в Markdown,
+секреты в `.env`.
 
-## ✨ Возможности
-- 🔍 Поиск билетов: авиа, ж/д (РЖД), автобусы, электрички
-- 🏨 Поиск отелей с фильтрами (звёзды, питание, бюджет, удобства)
-- 🗺️ Мультимодальные маршруты «как добраться» одним запросом
-- 💺 Схемы вагонов с точным расположением и типами мест
-- 🛒 Ссылки на бронирование (deeplink с предзаполненной корзиной)
-- 🧠 Автоматическое чтение плейбуков перед каждым доменом поиска
-- 📅 Осведомлённость о текущей дате (относительные даты: «завтра», «на следующей неделе»)
-- 💬 Контекстный диалог с историей; 🎙️ голосовой режим; 🌐 REST API
+---
 
-## 🏗 Структура проекта
+## 🚀 Варианты запуска
+
+| Как запускаешь | Что происходит |
+| :--- | :--- |
+| **Двойной клик** по `start.bat` | Открывается меню `[1] CLI / [2] API / [3] WEB` |
+| `.\start.bat` + ввод `1` | Консольный чат |
+| `.\start.bat cli` | Сразу консольный чат (без меню) |
+| `.\start.bat api` | API-сервер на порту **8000** |
+| `.\start.bat api 9000` | API-сервер на порту **9000** |
+| `.\start.bat web` | Веб-режим + автоматически откроется браузер |
+| `.\start.bat web 3000` | Веб-режим на порту **3000** |
+
+---
+
+## 🎯 Возможности
+
+- **Подбор путешествий**: авиа, ЖД, автобусы, электрички, отели через MCP Туту
+- **Маркетинговые задачи**: SEO, копирайтинг, анализ конкурентов, ICP
+- **Экономия токенов**: прокси `tutu_call` вместо 16 отдельных схем (~90% экономии)
+- **Мультиагентность**: оркестратор на дешёвой модели, исполнитель на мощной
+- **Полный трейсинг**: DEBUG в `logs.txt`, INFO в консоль, подсчёт токенов за сессию
+
+---
+
+## 🏗 Архитектура и Workflow
+
+### Схема взаимодействия
 
 ```
-travel_assistant2026/
-├── main.py                     # Точка входа (--mode console|api|websocket)
-├── main_tests.py               # Полный чек MCP-сервера: 16 инструментов
-├── run_api.py                  # Быстрый запуск FastAPI (uvicorn)
+┌──────────────┐
+│   main.py    │  точка входа: CLI-цикл
+└──────┬───────┘
+       │
+       ▼
+┌──────────────────┐
+│  Orchestrator    │  менеджер сессии
+└──────┬───────────┘
+       │
+       ├──► Router Agent (aliceai-llm-flash)
+       │    └─ читает .agents/skills/SKILL.md
+       │    └─ возвращает имя навыка: "touragent"
+       │
+       ├──► load_skill("touragent")
+       │    └─ читает .agents/skills/touragent/touragent.md
+       │
+       ├──► SKILL_TOOLSETS["touragent"]
+       │    └─ фильтр инструментов из реестра
+       │
+       └──► Executor Agent (qwen3.6-35b-a3b)
+            ├─ системный промпт (YAML + навык + дата + MCP-каталог)
+            ├─ tool-calling loop
+            └─ вызывает tutu_call → SyncMCPClient → mcp.tutu.ru
+```
+
+### Пошаговый Workflow одного запроса
+
+1. **Пользователь** пишет запрос в CLI (`main.py`).
+2. **`main.py`** вызывает `orchestrator.route_and_execute(user_message, history)`.
+3. **Router Agent** (`BaseAgent` + модель `aliceai-llm-flash/latest`):
+   - Получает простой системный промпт «ты роутер».
+   - Возвращает одно слово: `touragent`, `marketingskills` или `general`.
+4. **Orchestrator** загружает инструкцию навыка:
+   - `load_skill("touragent")` → читает `.agents/skills/touragent/touragent.md`.
+5. **Orchestrator** фильтрует инструменты:
+   - `SKILL_TOOLSETS["touragent"]` = `["load_skill", "tutu_call", "file_write", "file_read"]`.
+   - Исполнитель получит **только** эти инструменты, а не все 16+ схем.
+6. **PromptLoader** собирает финальный системный промпт:
+   - База из `.agents/prompts/system.yaml`.
+   - Блок с текущей датой (`YYYY-MM-DD` + день недели).
+   - Каталог инструментов Туту (строится из `mcp_client.list_tools()`).
+   - Инструкция навыка.
+7. **Executor Agent** (`BaseAgent` + модель `qwen3.6-35b-a3b/latest`):
+   - Входит в цикл tool-calling (до 10 итераций).
+   - Вызывает `tutu_call(tool="search_avia", args_json='{...}')`.
+   - `tutu_call` делает пред-валидацию аргументов по JSON-схеме MCP.
+   - `SyncMCPClient` отправляет JSON-RPC запрос на `https://mcp.tutu.ru/mcp`.
+   - Результат возвращается в историю диалога.
+8. **Итог**: Executor формирует финальный ответ в Markdown.
+9. **UsageTracker** аккумулирует токены и время, выводит сводку:
+   ```
+   📊 Сессия: 8 запросов | ⏱️ 44.46s | 🔤 58577 in / 7141 out / 65718 total
+   ```
+
+---
+
+## 📁 Структура проекта
+
+```
+ft_assistant2026/
+│
+├── main.py                          # 🚪 Точка входа CLI
+├── .env                             # 🔑 Секреты (YANDEX_API_KEY, FOLDER_ID)
+├── requirements.txt                 # 📦 Зависимости
+├── logs.txt                         # 📝 DEBUG-трейс работы
+├── output/                          # 📂 Артефакты (файлы, изображения)
+│
 ├── config/
-│   ├── __init__.py
-│   └── settings.py             # Settings (pydantic), get_settings(), .env
-├── agent/
-│   ├── base.py                 # BaseAgent — общий агентный цикл (sync + async)
-│   ├── openai_agent.py         # OpenAIAgent / AsyncOpenAIAgent (тонкие подклассы)
-│   ├── realtime_agent.py       # RealtimeAgent — голосовой режим (WebSocket)
-│   ├── handlers.py             # handle_function_call для Realtime API
-│   ├── session.py              # Session, SessionStore (история диалога)
+│   ├── __init__.py                  # экспорт Settings, get_settings
+│   └── settings.py                  # ⚙️ Pydantic-settings (переменные + дефолты)
+│
+├── agent/                           # 🤖 Ядро мультиагентной системы
+│   ├── base.py                      # BaseAgent + UsageTracker (tool-calling loop)
+│   ├── orchestrator.py              # 🧭 Оркестратор (Router + spawn Executor)
+│   │
 │   └── core/
 │       ├── mcp/
-│       │   ├── sync_client.py  # SyncMCPClient (requests) — консоль
-│       │   ├── async_client.py # AsyncMCPClient (aiohttp) — FastAPI/WS
-│       │   ├── checkout_helper.py # Распаковка checkout_ref для create_checkout_link
-│       │   └── models.py       # Pydantic-модели JSON-RPC 2.0
-│       ├── prompts/            # ВСЕ промпты проекта
-│       │   ├── loader.py       # PromptLoader: Jinja2 + автоинъекция даты
-│       │   ├── system_prompt.jinja # Главный шаблон: блок даты + include md + схемы
-│       │   ├── travel_assistant.md # Роль, стиль, workflow, карточки ответов
-│       │   ├── mcp_instructions.md # Подключение и типовые ловушки
-│       │   └── mcp_tools_rules.md  # Строгие схемы параметров 16 инструментов
-│       ├── tools/
-│       │   ├── registry.py     # ToolRegistry (из MCP tools/list или статика)
-│       │   └── definitions.py  # Статические схемы + обёртка tutu_mcp
-│       ├── loaders/            # config_loader, prompt_loader (ре-экспорт)
-│       ├── skills/             # BaseSkill, пример скила
-│       └── models/             # yandexgpt_config.json
+│       │   ├── sync_client.py       # SyncMCPClient (SSE, TTL-кэш, авто-retry)
+│       │   └── tutu_tools.py        # tutu_call + tutu_catalog_markdown
+│       │
+│       ├── prompts/
+│       │   └── loader.py            # PromptLoader (YAML + дата + навык + MCP)
+│       │
+│       └── tools/
+│           ├── agent_tools.py       # @tool, load_skill, bash_execute, YandexTools
+│           └── registry.py          # ToolRegistry (сборка всех инструментов)
+│
 ├── interfaces/
-│   ├── __init__.py
-│   ├── cli.py                  # Консольный чат (команды /help /clear /tools /logs)
-│   ├── dependencies.py         # DI для FastAPI (lifespan-инициализация)
-│   ├── api/                    # FastAPI-приложение
-│   │   ├── __init__.py
-│   │   ├── app.py              # Создание app (lifespan, роутеры)
-│   │   ├── routes.py           # REST: POST /chat, GET /health, GET /tools
-│   │   ├── websocket.py        # WebSocket /ws (текстовый чат)
-│   │   └── realtime_ws.py      # WebSocket Yandex Realtime (голос)
-│   ├── web/
-│   │   └── index.html          # Веб-страница чата (статика)
-│   ├── knowledge_base/         # База знаний (FAQ и советы)
-│   │   ├── faq_tutu.md         # FAQ Tutu
-│   │   └── travel_hacks.md     # Travel-хаки
-│   └── tests/                  # Тесты и проверочные скрипты
-│       ├── __init__.py
-│       ├── test_agent_creation.py # Тест создания агента
-│       ├── test_mcp_server.py     # Тест MCP-сервера
-│       └── voice_agent.py         # Скрипт голосового агента (ручная проверка)
-├── .env                        # Локальные переменные (не коммитить)
-├── .env.example                # Шаблон переменных окружения
-├── .gitignore
-├── requirements.txt
-├── README.md
-├── PRESENTATION.md             # Презентация проекта
-├── MCP_description.md          # Описание MCP-сервера и инструментов
-├── mcp_server_check_report.json # Отчёт main_tests.py по MCP-серверу
-├── draft01.md                  # Черновые заметки
-└── logs.txt                    # Логи
-
+│   └── api/                         # (на будущее) FastAPI / WebSocket
+│
+└── .agents/                         # 📚 ДАННЫЕ агента (не код!)
+    ├── prompts/
+    │   └── system.yaml              # Системный промпт + параметры генерации
+    └── skills/
+        ├── SKILL.md                 # 📋 КАТАЛОГ навыков (читает Router)
+        ├── touragent/
+        │   └── touragent.md         # Инструкция турагента
+        └── marketingskills/
+            └── marketingskills.md   # Инструкция маркетолога
 ```
 
+---
 
-## 🧠 Как работает агент
-Как это теперь работает
-main.py --mode console
-   └→ cli.chat_loop → Orchestrator.run(запрос, история)
-         ├→ роутер (1 лёгкий вызов, temperature=0) → имя специалиста
-         ├→ AgentFactory.build(spec) лениво (MCP и реестр — один раз на всех)
-         └→ специалист (rail/avia/hotels/general) со своим набором tools
+## 🔄 Как расширить навыки
 
-В консоли увидите 🤖 Агент [rail]: ... — сразу видно, кто отвечал. Подсказка last_agent держит диалог на том же специалисте («оформи билет» после поиска электричек не уйдёт на general).
-Запуск: python main.py --mode console. Если в логе снова появится tutu_mcp — значит, на этой машине не заменился registry.py (файл №1).
+Добавление нового навыка **не требует изменения кода** — только данные.
 
-### Агентный цикл (`agent/base.py`)
+### Шаг 1. Создать папку и файл навыка
 
-Запрос пользователя
-↓
-system-промпт (свежая дата) + история + user
-↓
-Qwen 3.6 (OpenAI-совместимый API Yandex, tools = 16 схем + обёртка)
-↓
-есть tool_calls? ──да──▶ нормализация аргументов (поддержка обёртки
-│ {"tool_name": …, "arguments": {…}}) → MCP-вызов →
-│ текст результата → обратно в модель (до N итераций)
-нет
-↓
-финальный ответ пользователю
-
-- `BaseAgent` содержит весь общий цикл; подклассы реализуют только 4 тонких метода:
-  `_chat_sync/_chat_async` (один запрос к LLM) и `_execute_tool_sync/_execute_tool_async` (один MCP‑вызов).
-- При пустом финальном ответе после tool calls — автоматический retry с просьбой сформулировать ответ.
-- Ограничение цикла — `max_agent_iterations` (по умолчанию 12).
-
-### Системный промпт и дата (`agent/core/prompts/`)
-- `PromptLoader.get_system_prompt()` рендерит `system_prompt.jinja` **в момент старта сессии**:
-  блок «СЕГОДНЯ / ЗАВТРА / текущий год» (свежие значения на каждый рендер) +
-  `{% include %}` трёх md‑файлов + JSON‑схемы инструментов из реестра.
-- Благодаря этому «найди на завтра билет» всегда уходит с корректной датой (например, `2026-08-05`),
-  а правила параметров (`origin/destination`, без `passengers` в поиске и т.д.) зашиты в `mcp_tools_rules.md`.
-
-### MCP‑клиенты (`agent/core/mcp/`)
-- Протокол: Streamable HTTP (JSON‑RPC 2.0), сервер `https://mcp.tutu.ru/mcp`, без авторизации.
-- Рукопожатие: `initialize` → `notifications/initialized` → `tools/list` (16 инструментов).
-- Заголовки: `Accept: application/json, text/event-stream`, `MCP-Protocol-Version: 2024-11-05`.
-- Ответы парсятся и как JSON, и как SSE (`data:`‑строки); `Mcp-Session-Id` сохраняется из заголовков.
-- Таймауты: 30 c на init/list, 120 c на `tools/call` (долгие поиски).
-
-### Бронирование (checkout)
-Поля `checkout_ref` из ответа поиска передаются в `create_checkout_link`
-**распакованными на верхний уровень** arguments (схема сервера запрещает вложенный объект):
-
-json
-{ "product_type": "rail", "passengers": 1,
-"transport": "railway", "departure_city_id": 2657260, "…": "все поля checkout_ref" }
-
-Хелпер — `agent/core/mcp/checkout_helper.py`.
-
-### Защита от пустых результатов
-`BaseAgent.mcp_result_to_text()` добавляет в текст результата системную подсказку,
-если `offers`/`variants` пусты, — агент обязан сообщить пользователю и предложить альтернативы.
-
-## 🔌 Инструменты MCP (16)
-
-| Категория | Инструменты | Корректные параметры |
-|---|---|---|
-| Поиск | `search_avia` | `origin`, `destination`, `departure_date`, опц. `return_date`, `adults/children/infants` |
-| | `search_rail`, `search_bus`, `search_etrain` | `origin`, `destination`, `departure_date` (БЕЗ `passengers`) |
-| | `search_multitransport` | `origin`, `destination`, `departure_date`, `adults`, `optimize_for` |
-| | `search_hotels` | `city_name`, `check_in`, `check_out` (БЕЗ `guests`) |
-| Плейбуки | `get_*_instructions` ×6 | аргументов не требуют; читаются перед первым поиском домена |
-| Детализация | `get_offer_details` | `product_type` + `details_ref` (объект из поиска), опц. `view` |
-| | `get_rail_seatmap` | `details_ref` + `car_number` **строкой** ("1") |
-| Действия | `create_checkout_link` | `product_type` + `passengers` (число) + поля `checkout_ref` на верхнем уровне |
-| Ресурсы | `fetch_resource` | `uri`, напр. `tutu://amenities/dictionary` |
-
-Подробный справочник с примерами — в `MCP_description.md`.
-
-## 🚀 Быстрый старт
 ```bash
+mkdir -p .agents/skills/financeagent
+touch .agents/skills/financeagent/financeagent.md
+```
+
+### Шаг 2. Написать инструкцию в Markdown
+
+Файл `.agents/skills/financeagent/financeagent.md`:
+
+```markdown
+# Навык: Финансовый аналитик
+
+## Описание
+Анализ финансовых данных, построение отчётов, графики.
+
+## Когда использовать
+- «Построй график продаж по месяцам»
+- «Проанализируй CSV-файл с выручкой»
+
+## Рабочий процесс
+1. Загрузи данные через `file_read` или `upload_file`.
+2. Построй анализ через `execute_code` (Code Interpreter).
+3. Сохрани результат через `file_write`.
+```
+
+### Шаг 3. Добавить навык в каталог
+
+Файл `.agents/skills/SKILL.md` — добавить строку в таблицу:
+
+```markdown
+| Название навыка | skill_name | Когда использовать |
+| --- | --- | --- |
+| Турагент | touragent | Подбор путешествий... |
+| Маркетинг | marketingskills | Продуктовый маркетинг... |
+| Финансы | financeagent | Анализ финансовых данных... |  ← НОВАЯ СТРОКА
+```
+
+### Шаг 4. Прописать набор инструментов
+
+Файл `agent/core/tools/agent_tools.py` → словарь `SKILL_TOOLSETS`:
+
+```python
+SKILL_TOOLSETS = {
+    "touragent": ["load_skill", "tutu_call", "file_write", "file_read"],
+    "marketingskills": ["load_skill", "web_search", "execute_code", ...],
+    "financeagent": ["load_skill", "execute_code", "file_read", "file_write", 
+                     "upload_file", "download_file", "list_files"],  ← НОВАЯ ЗАПИСЬ
+    "general": [...],
+}
+```
+
+**Всё!** Router сам увидит новую строку в `SKILL.md` и будет маршрутизировать
+запросы на новый навык, а Executor получит только разрешённые инструменты.
+
+---
+
+## 🚀 Установка и запуск
+
+```bash
+# 1. Установить зависимости
 pip install -r requirements.txt
-cp .env.example .env            # указать API-ключ и YANDEX_FOLDER_ID
 
-python main.py --mode console   # интерактивный чат
-python main.py --mode api       # FastAPI: POST /chat, GET /health, GET /tools, WS /ws
+# 2. Создать .env (шаблон):
+# YANDEX_API_KEY=AQVN...
+# YANDEX_FOLDER_ID=b1gd...
+# YANDEX_MODEL_ROUTER=aliceai-llm-flash/latest
+# YANDEX_MODEL_AGENT=qwen3.6-35b-a3b/latest
 
-🧪 Команды чата и тесты
-Команда
-Действие
-/help /clear /tools /logs /exit
-справка / очистка истории / последние MCP‑вызовы / хвост logs.txt / выход
+# 3. Запустить
+python main.py
+```
 
-python main_tests.py   # живой чек всех 16 инструментов MCP (эталон сигнатур)
+### Команды CLI
 
-📝 Логирование
-Технические логи — logs.txt (уровень DEBUG: payload запросов, превью ответов, итерации цикла).
-В консоль выводятся только UX‑сообщения и предупреждения.
-📞 Контакты
-MCP‑сервер: https://mcp.tutu.ru/mcp · Yandex AI Studio: https://aistudio.yandex.ru
+| Команда | Действие |
+| :--- | :--- |
+| `/clear` | Очистить историю диалога |
+| `/usage` | Показать статистику токенов за сессию |
+| `/exit` или `Ctrl+C` | Выход |
+
+---
+
+## 💰 Экономия токенов
+
+| Метод | Эффект |
+| :--- | :--- |
+| **`tutu_call` (прокси)** | 1 схема вместо 16 → ~90% экономии на schemas |
+| **`SKILL_TOOLSETS`** | Executor получает только нужные инструменты |
+| **`aliceai-llm-flash` для роутера** | 0.1₽/1k in вместо 0.8₽/1k in (в 8× дешевле Pro) |
+| **Пред-валидация args** | Ловит ошибки ДО запроса к MCP |
+| **`view="compact"` в навыках** | Меньше данных в ответах `get_offer_details` |
+
+**Типичная стоимость сессии** (8-10 запросов, ~65k токенов):
+- Роутер: ~0.01 ₽
+- Executor: ~15-20 ₽
+- **Итого: ~15-20 ₽**
+
+---
+
+## 🐛 Troubleshooting
+
+| Симптом | Решение |
+| :--- | :--- |
+| `Failed to get model` | Проверь имя модели в `.env` (например `aliceai-llm-flash`, а не `alice-llm-flash`) |
+| MCP не подключается | Проверь доступность `https://mcp.tutu.ru/mcp` |
+| Модель галлюцинирует параметры | Читай `tutu_catalog_markdown` в системном промпте — там точные поля |
+| 400 Bad Request на API | Модель требует `gpt://{folder_id}/{model}` URI — это делает `base.py` автоматически |
+
+---
+
+## 📚 Дальнейшее развитие
+
+- [ ] `interfaces/api/` — FastAPI + WebSocket (web-интерфейс)
+- [ ] `interfaces/telegram/` — Telegram-бот
+- [ ] Лимит истории (`MAX_HISTORY_TURNS`)
+- [ ] Truncate ответов MCP (>4000 символов)
+- [ ] Кэширование системного промпта (prompt caching)
+- [ ] Стоимость в ₽ в `UsageTracker`
+
+---
+
+**Версия:** `minibu v1.0 (CLI)` | **Дата:** 19 августа 2026 | **Модели:** Yandex AI Studio
+
+## 💡 Что добавить в следующий коммит (v1.1)?
+
+🔍 Анализ логов: что можно улучшить
+
+#### ✅ Что работает хорошо:
+
+- Роутер на `aliceai-llm-flash/latest` — **69+3 токена**, очень быстро и дёшево
+- Пред-валидация в `tutu_call` ловит ошибки до сервера (экономит round-trip)
+- `tutu_call` корректно вызывает MCP и получает данные
+
+#### ⚠️ Проблемы для будущего (не блокируют коммит):
+
+1. **Гигантские ответы MCP**: `search_avia` вернул **38 371 символ**, `search_hotels` — **19 396**. Это кладётся в историю и на следующем шаге модель получает 29 000 токенов контекста.
+2. **Сумма сессии**: 89 674 in / 7 240 out = ~97k токенов. При цене Qwen3.6 это **~20₽ за сессию**.
+3. **Нет лимита истории** — на 5-м запросе история уже 10+ сообщений.
+
+**Решения на будущее** (не для этого коммита):
+
+- Truncate результатов MCP до 4000 символов
+- `MAX_HISTORY_TURNS=5` в orchestrator
+- Кэширование системного промпта
+
+Когда захочешь бороться с расходом токенов:
+
+1. **Truncate MCP ответов** в `agent/core/mcp/tutu_tools.py`:
+
+   ```python
+   MAX_RESULT_CHARS = 4000
+   result = mcp_client.call_tool(tool, args)
+   if len(result) > MAX_RESULT_CHARS:
+       result = result[:MAX_RESULT_CHARS] + "\n\n[... обрезано, полные данные в логах ...]"
+   ```
+
+2. **MAX_HISTORY_TURNS** в `orchestrator.py`:
+
+   ```python
+   history = history[-10:]  # последние 10 сообщений
+   ```
+
+Это снизит стоимость сессии с 20₽ до ~8-10₽.

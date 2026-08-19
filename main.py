@@ -1,77 +1,68 @@
-﻿import os
+"""
+main.py — Универсальная точка входа в систему.
+Version: 1.0.0
+Description: Роутер между режимами запуска (CLI, API, Web).
+Usage:
+    python main.py                    # Запуск CLI (по умолчанию)
+    python main.py --mode cli         # Запуск CLI
+    python main.py --mode api         # Запуск FastAPI сервера
+    python main.py --mode web         # Запуск веб-интерфейса (в разработке)
+"""
+import argparse
 import sys
-from pathlib import Path
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, JSONResponse
-from contextlib import asynccontextmanager
-from pydantic import BaseModel
 
-# Модель данных для чата
-class ChatRequest(BaseModel):
-    message: str
-    history: list = []
-    context: dict = {}
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("🚀 Green Brain Travel Agent Starting...")
-    # Здесь можно инициализировать клиента агента
-    yield
-    print("🛑 Service Stopping...")
+def main():
+    parser = argparse.ArgumentParser(
+        description="Tutu Travel Agent — Мультиагентная система",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Примеры:
+  python main.py                      Запуск CLI (консольный чат)
+  python main.py --mode api           Запуск FastAPI сервера (REST API)
+  python main.py --mode web           Запуск веб-интерфейса (TODO)
+  python main.py --help               Показать справку
+        """,
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["cli", "api", "web"],
+        default="cli",
+        help="Режим запуска: cli (консоль), api (FastAPI), web (браузер)",
+    )
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Хост для API/Web сервера (по умолчанию: 127.0.0.1)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8001,
+        help="Порт для API/Web сервера (по умолчанию: 8001)",
+    )
 
-app = FastAPI(title="Green Brain Travel Agent", lifespan=lifespan)
+    args = parser.parse_args()
 
-# Настройка путей к статике и шаблонам
-# Ищем папку interfaces/web или просто web в корне проекта
-BASE_DIR = Path(__file__).resolve().parent
-WEB_DIR = BASE_DIR / "interfaces" / "web"
-if not WEB_DIR.exists():
-    WEB_DIR = BASE_DIR / "web"
-if not WEB_DIR.exists():
-    WEB_DIR = BASE_DIR # Фоллбэк на корень
+    if args.mode == "cli":
+        from interfaces.cli import run_cli
+        run_cli()
 
-STATIC_DIR = WEB_DIR / "static"
-TEMPLATES_DIR = WEB_DIR / "templates"
+    elif args.mode == "api":
+        print("🚧 API режим в разработке (v2.0)")
+        print("   В будущем здесь будет FastAPI сервер с REST endpoints:")
+        print("   - POST /chat")
+        print("   - GET /health")
+        print("   - GET /tools")
+        print("\n   Для запуска CLI используйте: python main.py --mode cli")
+        sys.exit(0)
 
-# Подключаем статику если есть папка
-if STATIC_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    elif args.mode == "web":
+        print("🚧 Web режим в разработке (v2.0)")
+        print("   В будущем здесь будет статическая HTML-страница с чатом.")
+        print("\n   Для запуска CLI используйте: python main.py --mode cli")
+        sys.exit(0)
 
-# Настраиваем шаблоны
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR) if TEMPLATES_DIR.exists() else str(WEB_DIR))
-
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-@app.get("/agent", response_class=HTMLResponse)
-async def agent_page(request: Request):
-    """Страница выбора направлений и чата"""
-    return templates.TemplateResponse("agent.html", {
-        "request": request, 
-        "title": "Travel Agent - Green Brain"
-    })
-
-@app.post("/api/chat")
-async def chat_endpoint(req: ChatRequest):
-    """Эндпоинт для общения с агентом"""
-    # ЗАГЛУШКА: Здесь нужно вызвать реальную логику вашего агента
-    # Например: response = await agent.process(req.message, req.context)
-    
-    country = req.context.get("country", "миром")
-    user_msg = req.message
-    
-    # Имитация ответа агента
-    response_text = f"Отличный выбор! Для направления '{country}' я могу подобрать туры. Вы спросили: '{user_msg}'. Сейчас анализирую предложения..."
-    
-    return {
-        "response": response_text,
-        "status": "success",
-        "context": {"country": country}
-    }
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    main()
