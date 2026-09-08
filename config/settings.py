@@ -1,29 +1,45 @@
 """
 Конфигурация проекта.
-Version: 5.3.0
-Description: Переменные окружения + архитектурные константы.
+Version: 5.5.0
+Description: Переменные окружения + архитектурные константы + поддержка провайдеров.
 """
-from datetime import datetime
+from typing import Optional, Dict
 from pathlib import Path
+from datetime import datetime
+from functools import lru_cache
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseSettings):
-    # Секреты (обязательные)
-    yandex_api_key: str
-    yandex_folder_id: str
+class ProviderSettings(BaseModel):
+    """Настройки одного LLM-провайдера."""
+    base_url: str
+    api_key: Optional[str] = None
+    uri_format: str = "{model}"
+    display_name: str = ""
 
-    yandex_model_router: str = "aliceai-llm-flash/latest"      # Самая дешёвая для роутинга
-    yandex_model_agent: str = "qwen3.6-35b-a3b/latest"         # Оптимальная цена/качество
-    yandex_model_expert: str = "deepseek-v4-flash/latest"      # Только для сложных задач
-    yandex_model_general: str = "qwen3.6-35b-a3b"              # Для простых запросов без инструментов
+
+class Settings(BaseSettings):
+    # Секреты (все опциональны — активный провайдер выбирается через default_provider)
+    yandex_api_key: Optional[str] = None
+    yandex_folder_id: Optional[str] = None
+    router_ai_key: Optional[str] = None
+
+    # Активный провайдер: "router" | "yandex" (можно перебить через .env)
+    default_provider: str = "router"
+
+    # Модели
+    yandex_model_router: str = "aliceai-llm-flash/latest"
+    yandex_model_agent: str = "qwen3.6-35b-a3b/latest"
+    router_model: str = "z-ai/glm-5.3-flash"
 
     # Системные настройки
     log_file: str = "logs.txt"
     system_version: str = "main_v5.3_os"
 
-    # Архитектурные константы
+    # URL и пути
     yandex_base_url: str = "https://ai.api.cloud.yandex.net/v1"
+    router_base_url: str = "https://routerai.ru/api/v1"
     tutu_mcp_url: str = "https://mcp.tutu.ru/mcp"
     skills_dir: Path = Path(".agents/skills")
     prompts_dir: Path = Path(".agents/prompts")
@@ -35,21 +51,52 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    def get_model_uri(self, model_name: str) -> str:
-        """Формирует полный model URI для Яндекс API: gpt://{folder_id}/{model}."""
-        if model_name.startswith("gpt://") or model_name.startswith("ds://"):
-            return model_name
-        return f"gpt://{self.yandex_folder_id}/{model_name}"
+    @property
+    def providers(self) -> Dict[str, ProviderSettings]:
+        return {
+            "yandex": ProviderSettings(
+                base_url=self.yandex_base_url,
+                api_key=self.yandex_api_key,
+                uri_format=f"gpt://{self.yandex_folder_id}/{{model}}",
+                display_name="Yandex AI Studio",
+            ),
+            "router": ProviderSettings(
+                base_url=self.router_base_url,
+                api_key=self.router_ai_key,
+                uri_format="{model}",
+                display_name="Router AI",
+            ),
+        }
+
+    @property
+    def provider(self) -> ProviderSettings:
+        """Активный провайдер."""
+        return self.providers[self.default_provider]
+
+    @property
+    def model_router(self) -> str:
+        """Модель роутера активного провайдера."""
+        return self.yandex_model_router if self.default_provider == "yandex" else self.router_model
+
+    @property
+    def model_agent(self) -> str:
+        """Модель исполнителя активного провайдера."""
+        return self.yandex_model_agent if self.default_provider == "yandex" else self.router_model
+
+    def build_model_uri(self, model: str) -> str:
+        """URI модели для активного провайдера: gpt://{folder}/{model} или просто {model}."""
+        if model.startswith(("gpt://", "ds://")):
+            return model
+        return self.provider.uri_format.format(model=model)
 
     def get_current_date_context(self) -> str:
-        """Возвращает контекст текущей даты для агентов."""
         now = datetime.now()
-        weekday = now.strftime("%A")
-        return (
-            f"Сегодня {now.strftime('%d.%m.%Y')}, {weekday}. "
-            f"НЕ предлагай даты в прошлом (2024 год, вчерашний день) или далёком будущем."
-        )
+        return f"Сегодня {now.strftime('%d.%m.%Y')}, {now.strftime('%A')}."
 
 
+@lru_cache()
 def get_settings() -> Settings:
     return Settings()
+
+
+settings = get_settings()

@@ -1,9 +1,10 @@
 """
 interfaces/cli.py — Консольный интерфейс.
-Version: 5.2.0
+Version: 5.5.0
 """
 import logging
 import sys
+
 from openai import OpenAI
 
 from agent.core.mcp.sync_client import SyncMCPClient
@@ -47,22 +48,16 @@ def run_cli():
         print("❌ Не удалось подключиться к MCP")
         return
 
-    openai_client = OpenAI(
-        api_key=settings.yandex_api_key,
-        base_url=settings.yandex_base_url,
-        project=settings.yandex_folder_id,
-    )
+    provider = settings.provider
+    openai_client = OpenAI(api_key=provider.api_key, base_url=provider.base_url)
 
-    # ПЕРЕДАЁМ folder_id в ToolRegistry
     registry = ToolRegistry(
         openai_client=openai_client,
         folder_id=settings.yandex_folder_id,
         mcp_client=mcp_client,
     )
-
     orchestrator = Orchestrator(
         client=openai_client,
-        folder_id=settings.yandex_folder_id,
         mcp_client=mcp_client,
         registry=registry,
         settings=settings,
@@ -70,13 +65,14 @@ def run_cli():
 
     print("=" * 60)
     print(f"🧳 Tutu Travel Agent v{settings.system_version} (CLI)")
-    print(f"   Router: {settings.yandex_model_router}")
-    print(f"   Agent:  {settings.yandex_model_agent}")
+    print(f"   Provider: {provider.display_name}")
+    print(f"   Router: {settings.model_router}")
+    print(f"   Agent:  {settings.model_agent}")
     print(f"   MCP:    {len(mcp_client.tool_names())} инструментов")
     print(f"   Log:    {settings.log_file}")
     print("   Команды: /exit /clear /usage")
     print("=" * 60)
-    logger.info(f"CLI Session started | version={settings.system_version}")
+    logger.info(f"CLI Session started | version={settings.system_version} | provider={provider.display_name}")
 
     history = []
     while True:
