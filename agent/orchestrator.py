@@ -25,10 +25,14 @@ class Orchestrator:
     def route_and_execute(self, user_message: str, history: List[dict]) -> str:
         # ============== 1. РОУТИНГ ==============
         router_prompt = (
-            "Ты роутер. Выбери навык из: touragent, marketingskills, general. "
-            "Если про путешествия/билеты/отели — touragent. "
-            "Если про маркетинг/SEO/копирайтинг/анализ конкурентов/презентации — marketingskills. "
-            "Иначе general. Ответь ТОЛЬКО одним словом."
+            "Ты роутер. Выбери специализированного субагента из списка:\n"
+            "- general: простые разговоры, приветствия, вопросы без специализации\n"
+            "- rail: ЖД билеты, поезда, электрички\n"
+            "- avia: авиабилеты, самолёты, перелёты\n"
+            "- hotels: отели, гостиницы, проживание\n"
+            "- trip_planner: мультимодальные маршруты, сравнение транспорта, «как добраться»\n"
+            "- marketing: маркетинг, SEO, копирайтинг, презентации, анализ конкурентов\n"
+            "\nОтветь ТОЛЬКО одним словом из списка выше."
         )
         router = BaseAgent(
             client=self.client,
@@ -38,9 +42,18 @@ class Orchestrator:
             role_name="router",
         )
         skill_name = router.run(user_message, max_iterations=2).strip().lower()
-        if skill_name not in ("touragent", "marketingskills", "general"):
-            skill_name = "general"
-        logger.info(f"🧭 Оркестратор выбрал навык: {skill_name}")
+        
+        # Валидация и fallback
+        valid_skills = ("general", "rail", "avia", "hotels", "trip_planner", "marketing")
+        if skill_name not in valid_skills:
+            # Проверка legacy названий
+            legacy_map = {
+                "touragent": "trip_planner",
+                "marketingskills": "marketing",
+            }
+            skill_name = legacy_map.get(skill_name, "general")
+        
+        logger.info(f"🧭 Оркестратор выбрал субагента: {skill_name}")
 
         # ============== 2. ПОДГОТОВКА ИСПОЛНИТЕЛЯ ==============
         skill_instructions = load_skill(skill_name)

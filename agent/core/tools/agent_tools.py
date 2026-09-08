@@ -390,17 +390,49 @@ class YandexTools:
 # ============================================================
 # Реестр «навык → инструменты»
 # ============================================================
+# Архитектура субагентов по доменам (Agent Skills best practices):
+# - general: простые запросы без тяжелых инструментов (3 tools)
+# - rail/avia/hotels/trip_planner: путешествия с MCP (4 tools)
+# - marketing: веб-поиск, код, файлы (8 tools)
 SKILL_TOOLSETS = {
+    # === General agent (базовые операции) ===
+    "general": [
+        "bash_execute", "file_read", "file_write",
+    ],
+    
+    # === Rail agent (ЖД транспорт) ===
+    "rail": [
+        "load_skill", "tutu_call", "file_read", "file_write",
+    ],
+    
+    # === Avia agent (авиаперелеты) ===
+    "avia": [
+        "load_skill", "tutu_call", "file_read", "file_write",
+    ],
+    
+    # === Hotels agent (отели) ===
+    "hotels": [
+        "load_skill", "tutu_call", "file_read", "file_write",
+    ],
+    
+    # === Trip planner agent (мультимодальные маршруты) ===
+    "trip_planner": [
+        "load_skill", "tutu_call", "file_read", "file_write",
+    ],
+    
+    # === Marketing agent (маркетинг, SEO, презентации) ===
+    "marketing": [
+        "load_skill", "web_search", "execute_code",
+        "upload_file", "download_file", "list_files",
+        "file_read", "file_write", "generate_image",
+    ],
+    
+    # Legacy aliases для обратной совместимости
     "touragent": ["load_skill", "tutu_call", "file_write", "file_read"],
     "marketingskills": [
         "load_skill", "web_search", "execute_code",
         "upload_file", "download_file", "list_files",
         "file_read", "file_write", "generate_image",
-    ],
-    "general": [
-        "load_skill", "bash_execute", "file_read", "file_write",
-        "web_search", "execute_code", "generate_image",
-        "upload_file", "download_file", "list_files",
     ],
 }
 
