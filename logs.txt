@@ -1,0 +1,519 @@
+2026-08-19 17:22:51 | INFO     | agent.mcp.sync | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-08-19 17:22:51 | INFO     | agent.mcp.sync | ✅ MCP сессия установлена (stateless)
+2026-08-19 17:22:51 | INFO     | agent.mcp.sync | 📋 Получено 16 MCP-инструментов
+2026-08-19 17:22:51 | INFO     | cli | CLI Session started | version=main_v5.3_os
+2026-08-19 17:23:00 | INFO     | agent.base | 🤖 [router] model=gpt://dummy_folder_id/aliceai-llm-flash/latest
+2026-08-19 17:23:00 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 17:23:00 | ERROR    | agent.base | ❌ [router] API error: Error code: 401 - {'error': {'message': "rpc error: code = Unauthenticated desc = Unknown api key 'dumm****ting (FF5D50BC)'", 'type': 'authentication_error'}}
+2026-08-19 17:23:00 | ERROR    | cli | Critical error in CLI
+Traceback (most recent call last):
+  File "C:\Users\igor.sobolev\Programms\ft_assistant2026\interfaces\cli.py", line 101, in run_cli
+    response = orchestrator.route_and_execute(user_input, history=[])
+  File "C:\Users\igor.sobolev\Programms\ft_assistant2026\agent\orchestrator.py", line 49, in route_and_execute
+    skill_name = router.run(user_message, max_iterations=2).strip().lower()
+                 ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\igor.sobolev\Programms\ft_assistant2026\agent\base.py", line 113, in run
+    response = self.client.chat.completions.create(
+        model=self.model_uri,
+    ...<4 lines>...
+        max_tokens=self.max_tokens,
+    )
+  File "C:\Users\igor.sobolev\AppData\Local\Programs\Python\Python313\Lib\site-packages\openai\_utils\_utils.py", line 298, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\igor.sobolev\AppData\Local\Programs\Python\Python313\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1215, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<51 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\igor.sobolev\AppData\Local\Programs\Python\Python313\Lib\site-packages\openai\_base_client.py", line 1332, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\igor.sobolev\AppData\Local\Programs\Python\Python313\Lib\site-packages\openai\_base_client.py", line 1105, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.AuthenticationError: Error code: 401 - {'error': {'message': "rpc error: code = Unauthenticated desc = Unknown api key 'dumm****ting (FF5D50BC)'", 'type': 'authentication_error'}}
+2026-08-19 17:36:09 | INFO     | agent.mcp.sync | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-08-19 17:36:10 | INFO     | agent.mcp.sync | ✅ MCP сессия установлена (stateless)
+2026-08-19 17:36:10 | INFO     | agent.mcp.sync | 📋 Получено 16 MCP-инструментов
+2026-08-19 17:36:10 | INFO     | cli | CLI Session started | version=main_v5.3_os
+2026-08-19 17:36:19 | INFO     | agent.base | 🤖 [router] model=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest
+2026-08-19 17:36:19 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 17:36:20 | DEBUG    | agent.base |   [router] tokens=99+2 | time=0.57s | finish=stop
+2026-08-19 17:36:20 | INFO     | agent.base | ✅ [router] done in 0.57s (tokens 99+2)
+2026-08-19 17:36:20 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: general
+2026-08-19 17:36:20 | INFO     | agent.base | 🤖 [executor] model=gpt://b1gd8itqunasnf56lij4/qwen3.6-35b-a3b
+2026-08-19 17:36:20 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 17:36:21 | DEBUG    | agent.base |   [executor] tokens=60+213 | time=1.05s | finish=stop
+2026-08-19 17:36:21 | INFO     | agent.base | ✅ [executor] done in 1.05s (tokens 60+213)
+2026-08-19 17:36:21 | INFO     | agent.orchestrator | 
+📊 Сессия: 2 запросов | ⏱️ 1.62s | 🔤 159 in / 215 out / 374 total
+2026-08-19 17:36:41 | INFO     | agent.base | 🤖 [router] model=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest
+2026-08-19 17:36:41 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 17:36:42 | DEBUG    | agent.base |   [router] tokens=103+2 | time=0.17s | finish=stop
+2026-08-19 17:36:42 | INFO     | agent.base | ✅ [router] done in 0.17s (tokens 103+2)
+2026-08-19 17:36:42 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: general
+2026-08-19 17:36:42 | INFO     | agent.base | 🤖 [executor] model=gpt://b1gd8itqunasnf56lij4/qwen3.6-35b-a3b
+2026-08-19 17:36:42 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 17:36:45 | DEBUG    | agent.base |   [executor] tokens=63+589 | time=3.70s | finish=stop
+2026-08-19 17:36:45 | INFO     | agent.base | ✅ [executor] done in 3.70s (tokens 63+589)
+2026-08-19 17:36:45 | INFO     | agent.orchestrator | 
+📊 Сессия: 4 запросов | ⏱️ 5.49s | 🔤 325 in / 806 out / 1131 total
+2026-08-19 17:37:05 | INFO     | agent.base | 🤖 [router] model=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest
+2026-08-19 17:37:05 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 17:37:05 | DEBUG    | agent.base |   [router] tokens=103+2 | time=0.31s | finish=stop
+2026-08-19 17:37:05 | INFO     | agent.base | ✅ [router] done in 0.31s (tokens 103+2)
+2026-08-19 17:37:05 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: general
+2026-08-19 17:37:05 | INFO     | agent.base | 🤖 [executor] model=gpt://b1gd8itqunasnf56lij4/qwen3.6-35b-a3b
+2026-08-19 17:37:05 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 17:37:11 | DEBUG    | agent.base |   [executor] tokens=62+911 | time=5.52s | finish=stop
+2026-08-19 17:37:11 | INFO     | agent.base | ✅ [executor] done in 5.52s (tokens 62+911)
+2026-08-19 17:37:11 | INFO     | agent.orchestrator | 
+📊 Сессия: 6 запросов | ⏱️ 11.32s | 🔤 490 in / 1719 out / 2209 total
+2026-08-19 17:37:20 | INFO     | agent.base | 🤖 [router] model=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest
+2026-08-19 17:37:20 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 17:37:20 | DEBUG    | agent.base |   [router] tokens=101+2 | time=0.26s | finish=stop
+2026-08-19 17:37:20 | INFO     | agent.base | ✅ [router] done in 0.26s (tokens 101+2)
+2026-08-19 17:37:20 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: general
+2026-08-19 17:37:20 | INFO     | agent.base | 🤖 [executor] model=gpt://b1gd8itqunasnf56lij4/qwen3.6-35b-a3b
+2026-08-19 17:37:20 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 17:37:23 | DEBUG    | agent.base |   [executor] tokens=62+507 | time=3.32s | finish=stop
+2026-08-19 17:37:23 | INFO     | agent.base | ✅ [executor] done in 3.32s (tokens 62+507)
+2026-08-19 17:37:23 | INFO     | agent.orchestrator | 
+📊 Сессия: 8 запросов | ⏱️ 14.90s | 🔤 653 in / 2228 out / 2881 total
+2026-08-19 17:38:00 | INFO     | agent.base | 🤖 [router] model=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest
+2026-08-19 17:38:00 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 17:38:00 | DEBUG    | agent.base |   [router] tokens=109+3 | time=0.28s | finish=stop
+2026-08-19 17:38:00 | INFO     | agent.base | ✅ [router] done in 0.28s (tokens 109+3)
+2026-08-19 17:38:00 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: touragent
+2026-08-19 17:38:00 | INFO     | agent.base | 🤖 [executor] model=gpt://b1gd8itqunasnf56lij4/qwen3.6-35b-a3b/latest
+2026-08-19 17:38:00 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 17:38:06 | DEBUG    | agent.base |   [executor] tokens=3358+1063 | time=6.26s | finish=tool_calls
+2026-08-19 17:38:06 | INFO     | agent.base |     🔧 tutu_call(args_json={"origin": "Москва", "destination": "Сочи", "departure_date": "2026-08-22", "..., tool='search_avia')
+2026-08-19 17:38:06 | DEBUG    | agent.base |     FULL ARGS: {"args_json": "{\"origin\": \"Москва\", \"destination\": \"Сочи\", \"departure_date\": \"2026-08-22\", \"adults\": 1}", "tool": "search_avia"}
+2026-08-19 17:38:06 | DEBUG    | agent.mcp.tutu_tools | tutu_call -> search_avia({'origin': 'Москва', 'destination': 'Сочи', 'departure_date': '2026-08-22', 'adults': 1})
+2026-08-19 17:38:07 | INFO     | agent.base |        ✓ tutu_call | 36940 симв.
+2026-08-19 17:38:07 | DEBUG    | agent.base |        FULL RESULT (36940 симв.):
+{"offers":[{"offer_id":"dc750f7836178ea193eac0ab920cf739","transport":"avia","price":{"amount":8021.0,"currency":"RUB"},"duration_min":220,"carriers":["Победа"],"search_results_url":"https://avia.tutu.ru/f/Moskva/Sochi/?class=Y&travelers=1&route[0]=491-22082026-78","segments_count":1,"departure_at":"2026-08-22T21:35:00+03:00","arrival_at":"2026-08-23T01:15:00+03:00","legs":[{"label":"outbound","from":"Москва — Шереметьево (SVO)","to":"Сочи, AER","departure_at":"2026-08-22T21:35:00+03:00","arrival_at":"2026-08-23T01:15:00+03:00","duration_min":220,"segments":[{"from":"Москва — Шереметьево (SVO)","to":"Сочи, AER","departure_at":"2026-08-22T21:35:00+03:00","arrival_at":"2026-08-23T01:15:00+03:00","duration_min":220,"carrier":"Победа","voyage_no":"DP-6939","from_geo_point_id":2719726,"to_geo_point_id":2718761,"review_summary":{"rating":6.93,"review_count":14260,"label":"⭐ 6.93/10 · 14 260 отзывов","source":"offers-api.feedback","scope":"carrier","subject":"Победа","scale":10,"feedback_key":"2227"}}]}],"variants":[{"variant_id":"2ea66207007090d04906870f268218af:671018c27b97d70aa92a2c65120e84ac","offer_hash":"{\"Price\":8021,\"OriginalHash\":\"[{\\\"offerVariantHash\\\":\\\"827a676a9d699dfff0cbbfc11b984252\\\",\\\"variantConditionsHash\\\":\\\"dc750f7836178ea193eac0ab920cf739:f4b7bd50b88d2aef62aa0ef78689dd61\\\",\\\"pricingVariantHash\\\":\\\"2e8d36429f35d5807efdec50d7c3fb71\\\"}]\"}","price":{"amount":8021.0,"currency":"RUB"},"conditions":{"fare_family":"Базовый","baggage":{"kg":0,"pieces":0},"cabin_baggage":{"kg":null,"pieces":1,"dimensions":"36 × 30 × 27"},"refundable":false,"changeable":false},"service_class":"ECONOMIC"},{"variant_id":"2ea66207007090d04906870f268218af:6216f4b2c5b065a73a13b6ce8448635a","offer_hash":"{\"Price\":10971,\"OriginalHash\":\"[{\\\"offerVariantHash\\\":\\\"4a7bc5abf36ca191d02d0f43201c0cfc\\\",\\\"variantConditionsHash\\\":\\\"dc750f7836178ea193eac0ab920cf739:7bdef7201719c823a5aaf6841db6231e\\\",\\\"pricingVariantHash\\\":\\\"3e4709cf965f6f5a5c279f838a7dd43c\\\"}]\"}","price":{"amount":10971.0,"currency":"RUB"},"conditions":{"fare_family":"Выгодный","baggage":{"kg":10,"pieces":1},"cabin_baggage":{"kg":null,"pieces":1,"dimensions":"36 × 30 × 27"},"refundable":false,"changeable":true,"exchange":{"available":true,"deadline_hours":48}},"service_class":"ECONOMIC"},{"variant_id":"2ea66207007090d04906870f268218af:66fcf35c9562f0614bb9617bbea50c84","offer_hash":"{\"Price\":14325,\"OriginalHash\":\"[{\\\"offerVariantHash\\\":\\\"3eff468beed526a9bfc692b752f611a1\\\",\\\"variantConditionsHash\\\":\\\"dc750f7836178ea193eac0ab920cf739:81e223a99b8ce32d2cd1059cbdcab4ab\\\",\\\"pricingVariantHash\\\":\\\"c67e2fd6e0dcfbcf5597564896ac0bc2\\\"}]\"}","price":{"amount":14325.0,"currency":"RUB"},"conditions":{"fare_family":"Максимум","baggage":{"kg":20,"pieces":1},"cabin_baggage":{"kg":null,"pieces":1,"dimensions":"36 × 30 × 27"},"refundable":true,"changeable":true,"exchange":{"available":true,"deadline_hours":48}},"service_class":"ECONOMIC"}],"ch
+2026-08-19 17:38:07 | INFO     | agent.base |   [executor] iteration 2/10
+2026-08-19 17:38:13 | DEBUG    | agent.base |   [executor] tokens=21667+1604 | time=6.09s | finish=stop
+2026-08-19 17:38:13 | INFO     | agent.base | ✅ [executor] done in 13.35s (tokens 21667+1604)
+2026-08-19 17:38:13 | INFO     | agent.orchestrator | 
+📊 Сессия: 11 запросов | ⏱️ 27.53s | 🔤 25787 in / 4898 out / 30685 total
+2026-08-19 17:39:40 | INFO     | agent.base | 🤖 [router] model=gpt://b1gd8itqunasnf56lij4/aliceai-llm-flash/latest
+2026-08-19 17:39:40 | INFO     | agent.base |   [router] iteration 1/2
+2026-08-19 17:39:40 | DEBUG    | agent.base |   [router] tokens=106+3 | time=0.17s | finish=stop
+2026-08-19 17:39:40 | INFO     | agent.base | ✅ [router] done in 0.18s (tokens 106+3)
+2026-08-19 17:39:40 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: touragent
+2026-08-19 17:39:40 | INFO     | agent.base | 🤖 [executor] model=gpt://b1gd8itqunasnf56lij4/qwen3.6-35b-a3b/latest
+2026-08-19 17:39:40 | INFO     | agent.base |   [executor] iteration 1/10
+2026-08-19 17:39:46 | DEBUG    | agent.base |   [executor] tokens=3357+1683 | time=5.81s | finish=tool_calls
+2026-08-19 17:39:46 | INFO     | agent.base |     🔧 tutu_call(args_json='{"departure_date": "2026-08-20", "destination": "Калуга", "origin": "Москва"}', tool='search_etrain')
+2026-08-19 17:39:46 | DEBUG    | agent.base |     FULL ARGS: {"args_json": "{\"departure_date\": \"2026-08-20\", \"destination\": \"Калуга\", \"origin\": \"Москва\"}", "tool": "search_etrain"}
+2026-08-19 17:39:46 | DEBUG    | agent.mcp.tutu_tools | tutu_call -> search_etrain({'departure_date': '2026-08-20', 'destination': 'Калуга', 'origin': 'Москва'})
+2026-08-19 17:39:47 | INFO     | agent.base |        ✓ tutu_call | 14668 симв.
+2026-08-19 17:39:47 | DEBUG    | agent.base |        FULL RESULT (14668 симв.):
+{"offers":[{"offer_id":"0abc6074fba01aef8a1d8cc1e59c328f","transport":"etrain","price":{"amount":790.0,"currency":"RUB"},"duration_min":186,"carriers":[],"search_results_url":"https://www.tutu.ru/rasp.php?st1=16503&st2=20703&date=20.08.2026","segments_count":1,"checkout_url":"https://www.tutu.ru/rasp.php?st1=16503&st2=20703&date=20.08.2026","departure_at":"2026-08-20T10:15:00+03:00","arrival_at":"2026-08-20T13:21:00+03:00","legs":[{"label":"outbound","from":"Москва — Москва Киевская (2000007)","to":"Калуга — Калуга-1 (2000345)","departure_at":"2026-08-20T10:15:00+03:00","arrival_at":"2026-08-20T13:21:00+03:00","duration_min":186,"segments":[{"from":"Москва — Москва Киевская (2000007)","to":"Калуга — Калуга-1 (2000345)","departure_at":"2026-08-20T10:15:00+03:00","arrival_at":"2026-08-20T13:21:00+03:00","duration_min":186,"carrier":null,"voyage_no":"6155/6156","from_geo_point_id":2957768,"to_geo_point_id":2957947,"subtype":"etrain","vehicle_meta":{"name":"Стандарт плюс","code":"standardPlus","description":"Поезд с повышенным уровнем комфорта. Действуют те же билеты, что и на обычную электричку"}}]}],"variants":[{"variant_id":"9ed49a40a8d371d9f9043648eced475e","offer_hash":"0abc6074fba01aef8a1d8cc1e59c328f","price":{"amount":790.0,"currency":"RUB"}}],"checkout_ref":{"transport":"etrain","departure_city_id":2657260,"arrival_city_id":2662387,"departure_station_code":"2000007","arrival_station_code":"2000345","train_number":"6155/6156","departure_at":"2026-08-20T10:15:00+03:00","departure_etrain_id":16503,"arrival_etrain_id":20703}},{"offer_id":"5318bcc394e173672d83a1ddfd853d14","transport":"etrain","price":{"amount":790.0,"currency":"RUB"},"duration_min":183,"carriers":[],"search_results_url":"https://www.tutu.ru/rasp.php?st1=16503&st2=20703&date=20.08.2026","segments_count":1,"checkout_url":"https://www.tutu.ru/rasp.php?st1=16503&st2=20703&date=20.08.2026","departure_at":"2026-08-20T09:05:00+03:00","arrival_at":"2026-08-20T12:08:00+03:00","legs":[{"label":"outbound","from":"Москва — Москва Киевская (2000007)","to":"Калуга — Калуга-1 (2000345)","departure_at":"2026-08-20T09:05:00+03:00","arrival_at":"2026-08-20T12:08:00+03:00","duration_min":183,"segments":[{"from":"Москва — Москва Киевская (2000007)","to":"Калуга — Калуга-1 (2000345)","departure_at":"2026-08-20T09:05:00+03:00","arrival_at":"2026-08-20T12:08:00+03:00","duration_min":183,"carrier":null,"voyage_no":"6153/6154","from_geo_point_id":2957768,"to_geo_point_id":2957947,"subtype":"etrain","vehicle_meta":{"name":"Стандарт плюс","code":"standardPlus","description":"Поезд с повышенным уровнем комфорта. Действуют те же билеты, что и на обычную электричку"}}]}],"variants":[{"variant_id":"439a073a70692971cfc0310e2a7a41ce","offer_hash":"5318bcc394e173672d83a1ddfd853d14","price":{"amount":790.0,"currency":"RUB"}}],"checkout_ref":{"transport":"etrain","departure_city_id":2657260,"arrival_city_id":2662387,"departure_station_code":"2000007","arrival_station_code":"2000345","train_number":"6153/6154","dep
+2026-08-19 17:39:47 | INFO     | agent.base |   [executor] iteration 2/10
+2026-08-19 17:39:50 | DEBUG    | agent.base |   [executor] tokens=11865+1165 | time=3.28s | finish=stop
+2026-08-19 17:39:50 | INFO     | agent.base | ✅ [executor] done in 10.34s (tokens 11865+1165)
+2026-08-19 17:39:50 | INFO     | agent.orchestrator | 
+📊 Сессия: 14 запросов | ⏱️ 36.80s | 🔤 41115 in / 7749 out / 48864 total
+2026-09-08 17:12:15 | INFO     | agent.mcp.sync | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-09-08 17:12:15 | INFO     | agent.mcp.sync | ✅ MCP сессия установлена (stateless)
+2026-09-08 17:20:27 | INFO     | agent.mcp.sync | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-09-08 17:20:28 | INFO     | agent.mcp.sync | ✅ MCP сессия установлена (stateless)
+2026-09-08 17:20:29 | INFO     | agent.mcp.sync | 📋 Получено 17 MCP-инструментов
+2026-09-08 17:20:29 | INFO     | cli | CLI Session started | version=main_v5.3_os | provider=Router AI
+2026-09-08 17:20:39 | INFO     | agent.base | 🤖 [router] model=z-ai/glm-5.3-flash (uri=z-ai/glm-5.3-flash)
+2026-09-08 17:20:39 | INFO     | agent.base |   [router] iteration 1/2
+2026-09-08 17:21:03 | DEBUG    | agent.base |   [router] tokens=96+8 | time=23.76s | finish=stop
+2026-09-08 17:21:03 | INFO     | agent.base | ✅ [router] done in 23.76s (tokens 96+8)
+2026-09-08 17:21:03 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал навык: general
+2026-09-08 17:21:03 | INFO     | agent.base | 🤖 [executor] model=z-ai/glm-5.3-flash (uri=z-ai/glm-5.3-flash)
+2026-09-08 17:21:03 | INFO     | agent.base |   [executor] iteration 1/10
+2026-09-08 17:21:12 | DEBUG    | agent.base |   [executor] tokens=2060+66 | time=9.00s | finish=tool_calls
+2026-09-08 17:21:12 | INFO     | agent.base |     💭 Привет! 🐻👋...
+2026-09-08 17:21:12 | INFO     | agent.base |     🔧 load_skill()
+2026-09-08 17:21:12 | DEBUG    | agent.base |     FULL ARGS: {}
+2026-09-08 17:21:12 | INFO     | agent.base |        ✓ load_skill | 1495 симв.
+2026-09-08 17:21:12 | DEBUG    | agent.base |        FULL RESULT (1495 симв.):
+# Каталог навыков (Skills Catalog)
+
+Файл-роутер для ИИ-агента. Агент читает его, чтобы понять, какой навык (Skill)
+загрузить под запрос пользователя. Загрузка: `load_skill(skill_name="<имя>")`.
+Чтобы перечитать каталог — `load_skill()` без аргумента.
+
+## Доступные навыки
+
+| Название навыка | skill_name | Когда использовать |
+| --- | --- | --- |
+| Турагент | `touragent` | Подбор путешествий: авиа/жд/автобусы/электрички, отели, трансферы, «как добраться», сравнение видов транспорта, календарь цен, ссылка на оформление. Работает через MCP-сервер Туту (инструмент `tutu_call`). |
+| Маркетинговые навыки | `marketingskills` | Продуктовый маркетинг: позиционирование, ICP/ЦА, анализ конкурентов (выгрузка в XLSX), дифференциация, копирайтинг, SEO, генерация презентаций PPTX, growth. |
+
+## Правила использования
+
+1. Загружай только нужный навык. Выбери один по колонке «когда использовать».
+2. Следуй тексту навыка буквально — по его рабочему процессу и формату вывода.
+3. **Под-навыки** (`presentation`, `competitive-landscape`, `copywriting`, `seo`,
+   `product-marketing-context`) описаны **ВНУТРИ** `marketingskills.md`.
+   Отдельных файлов для них **НЕТ**: `load_skill("presentation")` вернёт ошибку.
+   Загружай только `marketingskills` и читай нужный раздел внутри него.
+4. Если текст навыка уже встроен в системный промпт — **НЕ вызывай `load_skill`
+   с этим же именем повторно** (это лишний расход токенов).
+5. Соблюдай безопасность — никогда не выводи значения секретов/токенов в чат.
+2026-09-08 17:21:12 | INFO     | agent.base |   [executor] iteration 2/10
+2026-09-08 17:21:28 | DEBUG    | agent.base |   [executor] tokens=2512+418 | time=15.86s | finish=tool_calls
+2026-09-08 17:21:28 | INFO     | agent.base |     🔧 load_skill(skill_name='touragent')
+2026-09-08 17:21:28 | DEBUG    | agent.base |     FULL ARGS: {"skill_name": "touragent"}
+2026-09-08 17:21:28 | INFO     | agent.base |        ✓ load_skill | 4329 симв.
+2026-09-08 17:21:28 | DEBUG    | agent.base |        FULL RESULT (4329 симв.):
+# Навык: Турагент (Tour Agent)
+
+## Описание
+Специализированный навык подбора путешествий: перелёт/проезд, отели, трансферы,
+сравнение вариантов и формирование итогового предложения со ссылкой на оформление.
+Работает через MCP-сервер Туту, вызываемый **единым инструментом** `tutu_call`.
+
+## Когда использовать
+- «Подбери тур в [город/страну]»
+- «Найди билеты из Москвы в Сочи на завтра»
+- «Посоветуй отель на побережье»
+- «Сравни цены на самолёт и поезд», «как добраться из … в …»
+
+## Как вызывать инструменты Туту (ВАЖНО)
+Все инструменты Туту вызываются через прокси `tutu_call(tool, args_json)`:
+- `tool` — имя инструмента из «Каталога инструментов Туту» в системном промпте;
+- `args_json` — аргументы **строкой JSON**.
+
+### ⚠️ Точные имена полей (сервер жёстко валидирует — `extra_forbidden`)
+Бери имена полей **только** из колонки «Параметры» каталога системного промпта.
+Частые ошибки (из-за них были сбои):
+- поля отправления/прибытия — **`origin` / `destination`** (НЕ `from_city`/`to_city`);
+- число путешественников у авиа — это **`adults`** (поля `passengers` у
+  `search_avia` НЕТ); у `search_rail` — сверяйся с каталогом;
+- **`departure_date` обязателен** для всех поисковых инструментов — сначала
+  уточни дату у пользователя, только потом вызывай поиск;
+- фильтра «прибытие до HH:MM» на сервере НЕТ — получи офферы и **отфильтруй по
+  времени сам** в тексте ответа;
+- не передавай `return_date` в `search_multitransport`.
+
+Если `tutu_call` вернул «нет полей …» или «не хватает обязательных полей …» —
+исправь `args_json` строго по подсказке и повтори. Это клиентская проверка ДО
+обращения к серверу, она не тратит серверный вызов и токены на ответ сервера.
+
+### Примеры (правильные имена полей)
+```
+tutu_call(tool="search_avia",
+          args_json='{"origin":"Москва","destination":"Сочи","departure_date":"2026-08-15","adults":2}')
+
+tutu_call(tool="search_rail",
+          args_json='{"origin":"Москва","destination":"Сочи","departure_date":"2026-08-15","passengers":2}')
+
+tutu_call(tool="search_multitransport",
+          args_json='{"origin":"Москва","destination":"Сочи","departure_date":"2026-08-15","adults":2}')
+
+tutu_call(tool="search_hotels",
+          args_json='{"city_name":"Сочи","check_in":"2026-08-15","check_out":"2026-08-22","guests":2}')
+```
+
+## Рабочий процесс
+
+### Шаг 0 (опционально): прочитать плейбук
+Если параметры неоднозначны (несколько аэропортов, тип вагона, geo_id отеля),
+сначала загрузи серверный плейбук: `tutu_call(tool="get_avia_instructions")`,
+`get_rail_instructions`, `get_hotels_instructions`, `get_multitransport_instructions`.
+Делай это **только при необходимости** — плейбуки объёмные и расходуют токены.
+
+### Шаг 1: Уточнение параметров
+Спроси недостающее: направление (откуда/куда), **даты** (без них поиск не
+запустится), число путешественников (взрослые/дети), бюджет и предпочтения. Не
+выдумывай.
+
+### Шаг 2: Поиск транспорта
+Выбери подходящий инструмент. Для сравнения видов транспорта или запроса
+«как добраться» используй `search_multit
+2026-09-08 17:21:28 | INFO     | agent.base |   [executor] iteration 3/10
+2026-09-08 17:21:52 | DEBUG    | agent.base |   [executor] tokens=3888+162 | time=24.12s | finish=stop
+2026-09-08 17:21:52 | INFO     | agent.base | ✅ [executor] done in 48.98s (tokens 3888+162)
+2026-09-08 17:21:52 | INFO     | agent.orchestrator | 
+📊 Сессия: 4 запросов | ⏱️ 72.73s | 🔤 8556 in / 654 out / 9210 total
+2026-09-08 17:58:32 | INFO     | agent.mcp.sync | MCP initialize на https://mcp.tutu.ru/mcp...
+2026-09-08 17:58:32 | INFO     | agent.mcp.sync | ✅ MCP сессия установлена (stateless)
+2026-09-08 17:58:33 | INFO     | agent.mcp.sync | 📋 Получено 17 MCP-инструментов
+2026-09-08 17:58:33 | INFO     | cli | CLI Session started | version=main_v5.3_os | provider=Router AI
+2026-09-08 17:58:42 | INFO     | agent.base | 🤖 [router] model=z-ai/glm-5.3-flash (uri=z-ai/glm-5.3-flash)
+2026-09-08 17:58:42 | INFO     | agent.base |   [router] iteration 1/2
+2026-09-08 17:58:45 | DEBUG    | agent.base |   [router] tokens=140+7 | time=3.91s | finish=stop
+2026-09-08 17:58:45 | INFO     | agent.base | ✅ [router] done in 3.91s (tokens 140+7)
+2026-09-08 17:58:45 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал субагента: general
+2026-09-08 17:58:45 | INFO     | agent.base | 🤖 [executor] model=z-ai/glm-5.3-flash (uri=z-ai/glm-5.3-flash)
+2026-09-08 17:58:45 | INFO     | agent.base |   [executor] iteration 1/10
+2026-09-08 17:58:56 | DEBUG    | agent.base |   [executor] tokens=1998+116 | time=10.51s | finish=stop
+2026-09-08 17:58:56 | INFO     | agent.base | ✅ [executor] done in 10.52s (tokens 1998+116)
+2026-09-08 17:58:56 | INFO     | agent.orchestrator | 
+📊 Сессия: 2 запросов | ⏱️ 14.43s | 🔤 2138 in / 123 out / 2261 total
+2026-09-08 17:59:20 | INFO     | agent.base | 🤖 [router] model=z-ai/glm-5.3-flash (uri=z-ai/glm-5.3-flash)
+2026-09-08 17:59:20 | INFO     | agent.base |   [router] iteration 1/2
+2026-09-08 17:59:24 | DEBUG    | agent.base |   [router] tokens=146+3 | time=4.14s | finish=stop
+2026-09-08 17:59:24 | INFO     | agent.base | ✅ [router] done in 4.14s (tokens 146+3)
+2026-09-08 17:59:24 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал субагента: rail
+2026-09-08 17:59:24 | INFO     | agent.base | 🤖 [executor] model=z-ai/glm-5.3-flash (uri=z-ai/glm-5.3-flash)
+2026-09-08 17:59:24 | INFO     | agent.base |   [executor] iteration 1/10
+2026-09-08 17:59:32 | DEBUG    | agent.base |   [executor] tokens=670+68 | time=8.45s | finish=tool_calls
+2026-09-08 17:59:32 | INFO     | agent.base |     🔧 load_skill(skill_name='')
+2026-09-08 17:59:32 | DEBUG    | agent.base |     FULL ARGS: {"skill_name": ""}
+2026-09-08 17:59:32 | INFO     | agent.base |        ✓ load_skill | 1994 симв.
+2026-09-08 17:59:32 | DEBUG    | agent.base |        FULL RESULT (1994 симв.):
+# Каталог навыков (Skills Catalog)
+
+Файл-роутер для ИИ-агента. Агент читает его, чтобы понять, какой навык (Skill)
+загрузить под запрос пользователя. Загрузка: `load_skill(skill_name="<имя>")`.
+Чтобы перечитать каталог — `load_skill()` без аргумента.
+
+## Доступные навыки
+
+| Название навыка | skill_name | Когда использовать |
+| --- | --- | --- |
+| General | `general` | Простые разговоры, приветствия, вопросы без специализации. **НЕ использует тяжёлые инструменты** (MCP, веб-поиск, код). |
+| ЖД Транспорт | `rail` | ЖД билеты: поезда дальнего следования, электрички. Работает через MCP-сервер Туту (`tutu_call`). |
+| Авиаперелёты | `avia` | Авиабилеты: прямые рейсы, пересадки. Работает через MCP-сервер Туту (`tutu_call`). |
+| Отели | `hotels` | Отели, гостиницы, апартаменты. Работает через MCP-сервер Туту (`tutu_call`). |
+| Планировщик маршрутов | `trip_planner` | Мультимодальные путешествия: сравнение транспорта, «как добраться». Работает через MCP-сервер Туту (`tutu_call`). |
+| Маркетинг | `marketing` | Продуктовый маркетинг: анализ конкурентов, копирайтинг, SEO, презентации PPTX. Использует `web_search`, `execute_code`. |
+
+## Правила использования
+
+1. **Загружай только нужный навык.** Выбери один по колонке «когда использовать».
+2. Следуй тексту навыка буквально — по его рабочему процессу и формату вывода.
+3. **Под-навыки** (`presentation`, `competitive-landscape`, `copywriting`, `seo`,
+   `product-marketing-context`) описаны **ВНУТРИ** `marketing.md`.
+   Отдельных файлов для них **НЕТ**: `load_skill("presentation")` вернёт ошибку.
+   Загружай только `marketing` и читай нужный раздел внутри него.
+4. Если текст навыка уже встроен в системный промпт — **НЕ вызывай `load_skill`
+   с этим же именем повторно** (это лишний расход токенов).
+5. Соблюдай безопасность — никогда не выводи значения секретов/токенов в чат.
+6. **Архитектура субагентов:** каждый навык загружает только свои инструменты (3-5 вместо 17),
+   что экономит токены и ускоряет ответ на простые запросы.
+2026-09-08 17:59:32 | INFO     | agent.base |     🔧 tutu_call(tool='get_etrain_instructions')
+2026-09-08 17:59:32 | DEBUG    | agent.base |     FULL ARGS: {"tool": "get_etrain_instructions"}
+2026-09-08 17:59:32 | DEBUG    | agent.mcp.tutu_tools | tutu_call -> get_etrain_instructions({})
+2026-09-08 17:59:33 | INFO     | agent.base |        ✓ tutu_call | 5652 симв.
+2026-09-08 17:59:33 | DEBUG    | agent.base |        FULL RESULT (5652 симв.):
+# Etrain playbook — commuter / suburban trains (электрички)
+(`search_etrain` -> `create_checkout_link`)
+
+## Station disambiguation (mandatory)
+A city often has several commuter stations far apart — СПб (Московский /
+Ладожский / Балтийский …), Москва (the radial вокзалы). The departure /
+arrival point is in `legs[].segments[].from|to` as a self-describing
+string `"City — Station (code)"` (e.g. `"Санкт-Петербург — Московский
+вокзал (2004003)"`). Always name the concrete station when comparing
+offers — never present two electrichkas that leave the same city from
+different stations as if they share an origin, and never make the user
+read the station out of the checkout URL.
+
+## Place resolution (`meta.from` / `meta.to`)
+Each side echoes the place that was searched: `name`, `geo_id`, `region`.
+`match` + `query` are present only when the resolved name differs from
+the wording you sent — `lead` (Tutu's own ranking read a short form or
+typo: «Питер», «Масква»), `qualified` (the trailing words acted as a
+region filter: «Красная Поляна, Краснодарский край»), `prefix` (the name
+was completed). Say which place came back and keep going; a synonym is
+never a reason to stop and confirm. `also_named[]` lists same-name places
+that lost to a better-connected one — mention them with a one-line
+invitation to correct, never as a blocking question.
+Two wordings are refused with an error instead of being searched as some
+other city, and the error text is the instruction:
+- `could not resolve … N places share this name and none is better
+  connected …` — an exact-name tie. The candidates are listed with their
+  regions, and the text may add what Tutu's hotel index lists under this
+  name. Ask the user which one is meant, or resend as '<name>, <область
+  или район>' (name first, no parentheses). Do not pick one yourself.
+- `could not resolve … no place with this name in Tutu's transport index
+  …` — the fuzzy suggestions were unrelated places and were NOT searched.
+  If the text says Tutu's hotel index lists it, hotels there ARE
+  searchable — say so and offer `search_hotels`; never report it as
+  «транспорта нет». Otherwise check the spelling with the user.
+`… has no <id> in Tutu's index` means the place resolved but this
+transport has no node there — ask for a place that has one; when the text
+names the city Tutu's avia index answered with, offer it and search it
+only after the user agrees. `Tutu's geo index did not answer` is a
+transient upstream error: retry the call.
+
+## Consist type and «билет с местом или просто сел и поехал?»
+Each segment may carry `vehicle_meta` ({name, code, description,
+seat_assignment}) — use it to filter consist type without parsing labels.
+
+`seat_assignment` answers the seating question DIRECTLY and is the only
+thing you may answer it from. Two values:
+
+- `reserved` — the ticket names a seat. Tutu says so itself; `description`
+  is the sentence it says it in.
+- `unknown` — Tutu did NOT state it. Say that out loud: «Tutu не сообщает,
+  закре
+2026-09-08 17:59:33 | INFO     | agent.base |   [executor] iteration 2/10
+2026-09-08 17:59:41 | DEBUG    | agent.base |   [executor] tokens=2732+124 | time=8.04s | finish=tool_calls
+2026-09-08 17:59:41 | INFO     | agent.base |     🔧 tutu_call(args_json='{"from": "Москва", "to": "Калуга", "date": "завтра"}', tool='search_etrain')
+2026-09-08 17:59:41 | DEBUG    | agent.base |     FULL ARGS: {"args_json": "{\"from\": \"Москва\", \"to\": \"Калуга\", \"date\": \"завтра\"}", "tool": "search_etrain"}
+2026-09-08 17:59:41 | INFO     | agent.mcp.tutu_tools | tutu_call pre-validation reject: search_etrain {'from': 'Москва', 'to': 'Калуга', 'date': 'завтра'}
+2026-09-08 17:59:41 | INFO     | agent.base |        ✓ tutu_call | 241 симв.
+2026-09-08 17:59:41 | DEBUG    | agent.base |        FULL RESULT (241 симв.):
+❌ У инструмента 'search_etrain' нет полей: from, to, date. Допустимые поля: carriers, departure_date, destination, direct_only, from_city, origin, page, page_size, price_max, sort, to_city, view. Не выдумывай параметры — используй только их.
+2026-09-08 17:59:41 | INFO     | agent.base |   [executor] iteration 3/10
+2026-09-08 17:59:49 | DEBUG    | agent.base |   [executor] tokens=2847+54 | time=7.77s | finish=tool_calls
+2026-09-08 17:59:49 | INFO     | agent.base |     🔧 tutu_call(args_json={"destination": "Калуга", "departure_date": "2026-05-15", "from_city": "Москв..., tool='search_etrain')
+2026-09-08 17:59:49 | DEBUG    | agent.base |     FULL ARGS: {"args_json": "{\"destination\": \"Калуга\", \"departure_date\": \"2026-05-15\", \"from_city\": \"Москва\", \"origin\": \"Москва\"}", "tool": "search_etrain"}
+2026-09-08 17:59:49 | DEBUG    | agent.mcp.tutu_tools | tutu_call -> search_etrain({'destination': 'Калуга', 'departure_date': '2026-05-15', 'from_city': 'Москва', 'origin': 'Москва'})
+2026-09-08 17:59:49 | INFO     | agent.base |        ✓ tutu_call | 15582 симв.
+2026-09-08 17:59:49 | DEBUG    | agent.base |        FULL RESULT (15582 симв.):
+{"offers":[{"offer_id":"8666e7c6d392337a7ade016fead8d1e9","transport":"etrain","price":{"amount":790.0,"currency":"RUB"},"duration_min":185,"carriers":[],"search_results_url":"https://www.tutu.ru/rasp.php?st1=16503&st2=20703&date=15.05.2026","segments_count":1,"checkout_url":"https://www.tutu.ru/rasp.php?st1=16503&st2=20703&date=15.05.2026","departure_at":"2026-05-15T05:22:00+03:00","arrival_at":"2026-05-15T08:27:00+03:00","legs":[{"label":"outbound","from":"Москва — Москва Киевская (2000007)","to":"Калуга — Калуга-1 (2000345)","departure_at":"2026-05-15T05:22:00+03:00","arrival_at":"2026-05-15T08:27:00+03:00","duration_min":185,"segments":[{"from":"Москва — Москва Киевская (2000007)","to":"Калуга — Калуга-1 (2000345)","departure_at":"2026-05-15T05:22:00+03:00","arrival_at":"2026-05-15T08:27:00+03:00","duration_min":185,"carrier":null,"voyage_no":"6151/6152","from_geo_point_id":2957768,"to_geo_point_id":2957947,"subtype":"etrain","vehicle_meta":{"name":"Стандарт плюс","code":"standardPlus","description":"Поезд с повышенным уровнем комфорта. Действуют те же билеты, что и на обычную электричку","seat_assignment":"unknown"}}]}],"variants":[{"variant_id":"eaf7cec45d0be91446ed94d2eb1b8c4e","offer_hash":"8666e7c6d392337a7ade016fead8d1e9","price":{"amount":790.0,"currency":"RUB"}}],"checkout_ref":{"transport":"etrain","departure_city_id":2657260,"arrival_city_id":2662387,"departure_station_code":"2000007","arrival_station_code":"2000345","train_number":"6151/6152","departure_at":"2026-05-15T05:22:00+03:00","departure_etrain_id":16503,"arrival_etrain_id":20703}},{"offer_id":"92dc40ada3eaf7f5c843053151a96a6f","transport":"etrain","price":{"amount":790.0,"currency":"RUB"},"duration_min":186,"carriers":[],"search_results_url":"https://www.tutu.ru/rasp.php?st1=16503&st2=20703&date=15.05.2026","segments_count":1,"checkout_url":"https://www.tutu.ru/rasp.php?st1=16503&st2=20703&date=15.05.2026","departure_at":"2026-05-15T10:15:00+03:00","arrival_at":"2026-05-15T13:21:00+03:00","legs":[{"label":"outbound","from":"Москва — Москва Киевская (2000007)","to":"Калуга — Калуга-1 (2000345)","departure_at":"2026-05-15T10:15:00+03:00","arrival_at":"2026-05-15T13:21:00+03:00","duration_min":186,"segments":[{"from":"Москва — Москва Киевская (2000007)","to":"Калуга — Калуга-1 (2000345)","departure_at":"2026-05-15T10:15:00+03:00","arrival_at":"2026-05-15T13:21:00+03:00","duration_min":186,"carrier":null,"voyage_no":"6155/6156","from_geo_point_id":2957768,"to_geo_point_id":2957947,"subtype":"etrain","vehicle_meta":{"name":"Стандарт плюс","code":"standardPlus","description":"Поезд с повышенным уровнем комфорта. Действуют те же билеты, что и на обычную электричку","seat_assignment":"unknown"}}]}],"variants":[{"variant_id":"6aaa7511c4e7a5a22ed64456c5721f41","offer_hash":"92dc40ada3eaf7f5c843053151a96a6f","price":{"amount":790.0,"currency":"RUB"}}],"checkout_ref":{"transport":"etrain","departure_city_id":2657260,"arrival_city_id":2662387,"departure_station_code":"2000007","arrival
+2026-09-08 17:59:49 | INFO     | agent.base |   [executor] iteration 4/10
+2026-09-08 18:00:06 | DEBUG    | agent.base |   [executor] tokens=8534+546 | time=17.02s | finish=stop
+2026-09-08 18:00:06 | INFO     | agent.base | ✅ [executor] done in 42.21s (tokens 8534+546)
+2026-09-08 18:00:06 | INFO     | agent.orchestrator | 
+📊 Сессия: 7 запросов | ⏱️ 59.86s | 🔤 17067 in / 918 out / 17985 total
+2026-09-08 18:00:51 | INFO     | agent.base | 🤖 [router] model=z-ai/glm-5.3-flash (uri=z-ai/glm-5.3-flash)
+2026-09-08 18:00:51 | INFO     | agent.base |   [router] iteration 1/2
+2026-09-08 18:01:03 | DEBUG    | agent.base |   [router] tokens=150+3 | time=12.00s | finish=stop
+2026-09-08 18:01:03 | INFO     | agent.base | ✅ [router] done in 12.00s (tokens 150+3)
+2026-09-08 18:01:03 | INFO     | agent.orchestrator | 🧭 Оркестратор выбрал субагента: avia
+2026-09-08 18:01:03 | INFO     | agent.base | 🤖 [executor] model=z-ai/glm-5.3-flash (uri=z-ai/glm-5.3-flash)
+2026-09-08 18:01:03 | INFO     | agent.base |   [executor] iteration 1/10
+2026-09-08 18:01:19 | DEBUG    | agent.base |   [executor] tokens=9086+39 | time=16.11s | finish=tool_calls
+2026-09-08 18:01:19 | INFO     | agent.base |     🔧 load_skill(skill_name='avia')
+2026-09-08 18:01:19 | DEBUG    | agent.base |     FULL ARGS: {"skill_name": "avia"}
+2026-09-08 18:01:19 | INFO     | agent.base |        ✓ load_skill | 2453 симв.
+2026-09-08 18:01:19 | DEBUG    | agent.base |        FULL RESULT (2453 симв.):
+# Навык: Авиаперелёты (Avia Agent)
+
+## Описание
+Специализированный навык поиска и бронирования авиабилетов: прямые рейсы, пересадки, сравнение тарифов.
+Работает через MCP-сервер Туту, вызываемый **единым инструментом** `tutu_call`.
+
+## Когда использовать
+- «Найди билеты на самолёт из Москвы в Сочи»
+- «Прямой рейс без пересадок»
+- «Сравни бизнес/эконом класс»
+- «Авиабилеты с багажом и без»
+
+## Как вызывать инструменты Туту (ВАЖНО)
+Все инструменты Туту вызываются через прокси `tutu_call(tool, args_json)`:
+- `tool` — имя инструмента из «Каталога инструментов Туту» в системном промпте;
+- `args_json` — аргументы **строкой JSON**.
+
+### ⚠️ Точные имена полей для АВИА
+- Поля отправления/прибытия — **`origin` / `destination`** (НЕ `from_city`/`to_city`);
+- Число взрослых — **`adults`** (НЕ `passengers` у `search_avia`);
+- **`departure_date` обязателен** — сначала уточни дату у пользователя;
+- Коды IATA: SVO (Шереметьево), DME (Домодедово), VKO (Внуково), AER (Сочи), LED (Пулково).
+
+### Примеры вызовов
+```
+tutu_call(tool="search_avia",
+          args_json='{"origin":"Москва","destination":"Сочи","departure_date":"2026-08-15","adults":2}')
+
+tutu_call(tool="get_offer_details",
+          args_json='{"offer_id":"12345","view":"compact"}')
+
+tutu_call(tool="create_checkout_link",
+          args_json='{"offer_id":"12345"}')
+```
+
+## Рабочий процесс
+
+### Шаг 1: Уточнение параметров
+Спроси недостающее: откуда/куда, **дату вылета**, число пассажиров (взрослые/дети/младенцы), предпочтения по классу обслуживания.
+
+### Шаг 2: Поиск авиабилетов
+Вызови `search_avia` с точными именами полей. Если дата не указана — НЕ вызывай поиск, сначала спроси.
+
+### Шаг 3: Детали и оформление
+- Детали оффера: `tutu_call(tool="get_offer_details", args_json='{...}')` с `view="compact"` для экономии токенов.
+- Ссылка на оформление: `tutu_call(tool="create_checkout_link", args_json='{...}')`.
+
+### Шаг 4: Итоговое предложение (Markdown)
+- ✈️ Рейс (авиакомпания, время вылета/прилёта, пересадки, цена)
+- 💰 Итого на всех пассажиров
+- 🔗 Ссылка на оформление (если запрошено)
+
+## Правила экономии токенов
+1. В `get_offer_details` используй `view="compact"`.
+2. Переиспользуй уже полученные offer_id, не дублируй поиск.
+3. Не запрашивай детали, пока пользователь не выбрал конкретный рейс.
+
+## Важные замечания
+- Даты — всегда `YYYY-MM-DD`. Сегодняшняя дата есть в системном промпте.
+- Не выдумывай offer_id, цены и ссылки — используй только то, что вернул `tutu_call`.
+
+2026-09-08 18:01:19 | INFO     | agent.base |     🔧 tutu_call(tool='get_avia_instructions')
+2026-09-08 18:01:19 | DEBUG    | agent.base |     FULL ARGS: {"tool": "get_avia_instructions"}
+2026-09-08 18:01:19 | DEBUG    | agent.mcp.tutu_tools | tutu_call -> get_avia_instructions({})
+2026-09-08 18:01:19 | INFO     | agent.base |        ✓ tutu_call | 15822 симв.
+2026-09-08 18:01:19 | DEBUG    | agent.base |        FULL RESULT (15822 симв.):
+# Avia playbook (`search_avia` -> `create_checkout_link`)
+
+## Detail card
+No confirmed read-only avia detail endpoint. For a presentation card,
+pass the selected compact offer object as `details_ref` to
+`get_offer_details(product_type='avia', ...)` — it reformats with no
+side effects.
+
+## Flight number
+The flight number is `legs[].segments[].voyage_no` (e.g. `SU-6026`) — one
+per segment, so a connection shows one number per hop. Quote it verbatim;
+never reconstruct a flight number from the carrier name or times.
+
+## Filters (`direct_only`, `carriers`)
+`direct_only=true` keeps only nonstop flights (every leg a single segment;
+round-trip stays direct when both legs are). `carriers=[...]` keeps only offers
+where every listed airline matches one of the requested names/ids; a mixed
+Aeroflot+S7 offer does not satisfy "only Aeroflot".
+`meta.carriers_available` is the per-route airline reference DERIVED from the
+fetched offers (avia fetches the full route pool, so it's complete for the
+route): each entry has `name` ("Аэрофлот"), `offers_count` and `price_from` —
+plus a stable `id` ("1062") ONLY when Tutu ships its carrier facet (the current
+`/avia/offers` endpoint doesn't — see the TODO-for-Tutu; filter by `name`).
+Matching is a case-insensitive substring on the name, so guessing ("aeroflot"
+for "Аэрофлот") silently drops everything. What
+each filter removed is in `meta.post_filter_dropped_not_direct` /
+`post_filter_dropped_wrong_carrier`. When a filter is active the whole route
+pool is fetched before filtering, so an airline listed in `carriers_available`
+reliably shows up in the filtered result and `has_more` stays honest — no thin
+page from the page-scoped fetch. `meta.total_matched` is the exact count after
+filters (before pagination): "сколько всего рейсов Азимута" is one search, not a
+page-walk (`meta.total_matched_exact=false` only on a rare >200-offer route).
+
+## Exact flight — «возьми рейс N»
+A results page is a window over the matched flights, NOT the day's
+timetable — a flight absent from the current page may still operate, so
+never conclude «рейса N нет» from one page while `meta.has_more` is true.
+When the user names a flight, pass `flight_numbers=['SU-6176']` — any
+spelling of the designator works ('SU 6176', 'su6176', leading zeros),
+and bare digits ('6176') match by flight number alone;
+`meta.post_filter_dropped_wrong_flight_number` counts the rest. A
+connection or round-trip containing the flight is kept WHOLE. An empty
+NUMBER-ONLY result means «этого рейса нет в продаже на Tutu на эту
+дату» — the flight may still operate (sold out or not sold here); say
+that, never a timetable claim. That reading holds only while
+`meta.total_matched_exact` is true: on a rare capped route (`false`)
+the filter saw a truncated pool, so the check is INCONCLUSIVE — and no
+in-tool filter can rescue it (`carriers` / `price_max` cut the SAME
+truncated prefix, they never widen the pool). Hand the user the
+`search_results_url` (the full listing on tutu.ru) instea
+2026-09-08 18:01:19 | INFO     | agent.base |   [executor] iteration 2/10
+2026-09-08 18:01:32 | DEBUG    | agent.base |   [executor] tokens=13817+53 | time=12.91s | finish=tool_calls
+2026-09-08 18:01:32 | INFO     | agent.base |     🔧 tutu_call(args_json={"adults": 1, "departure_date": "2026-09-15", "destination": "Сочи", "origin"..., tool='search_avia')
+2026-09-08 18:01:32 | DEBUG    | agent.base |     FULL ARGS: {"args_json": "{\"adults\": 1, \"departure_date\": \"2026-09-15\", \"destination\": \"Сочи\", \"origin\": \"Москва\"}", "tool": "search_avia"}
+2026-09-08 18:01:32 | DEBUG    | agent.mcp.tutu_tools | tutu_call -> search_avia({'adults': 1, 'departure_date': '2026-09-15', 'destination': 'Сочи', 'origin': 'Москва'})
+2026-09-08 18:01:35 | INFO     | agent.base |        ✓ tutu_call | 50960 симв.
+2026-09-08 18:01:35 | DEBUG    | agent.base |        FULL RESULT (50960 симв.):
+{"offers":[{"offer_id":"8801157fb33f7f057c622dca2a5c025e","transport":"avia","price":{"amount":4431.33,"currency":"RUB"},"duration_min":220,"carriers":["Победа"],"search_results_url":"https://avia.tutu.ru/f/Moskva/Sochi/?class=Y&travelers=1&route[0]=491-15092026-78","segments_count":1,"departure_at":"2026-09-15T22:50:00+03:00","arrival_at":"2026-09-16T02:30:00+03:00","legs":[{"label":"outbound","from":"Москва — Шереметьево (SVO), терм. D","to":"Сочи, AER","departure_at":"2026-09-15T22:50:00+03:00","arrival_at":"2026-09-16T02:30:00+03:00","duration_min":220,"segments":[{"from":"Москва — Шереметьево (SVO), терм. D","to":"Сочи, AER","departure_at":"2026-09-15T22:50:00+03:00","arrival_at":"2026-09-16T02:30:00+03:00","duration_min":220,"carrier":"Победа","voyage_no":"DP-5949","from_geo_point_id":2719726,"to_geo_point_id":2718761,"review_summary":{"rating":6.45,"review_count":14307,"label":"⭐ 6.45/10 · 14 307 отзывов","source":"offers-api.feedback","scope":"carrier","subject":"Победа","scale":10,"feedback_key":"2227"}}]}],"variants":[{"variant_id":"d6d495b08f84c9bb7755c67fb89b0c15:671018c27b97d70aa92a2c65120e84ac","offer_hash":"{\"Price\":4432,\"OriginalHash\":\"[{\\\"offerVariantHash\\\":\\\"6cb6fe9fcf4d9f8e1a234911873a858c\\\",\\\"variantConditionsHash\\\":\\\"8801157fb33f7f057c622dca2a5c025e:f4b7bd50b88d2aef62aa0ef78689dd61\\\",\\\"pricingVariantHash\\\":\\\"d4650f44e980277a008c1a7ab458da64\\\"}]\"}","price":{"amount":4431.33,"currency":"RUB"},"conditions":{"fare_family":"Базовый","baggage":{"kg":0,"pieces":0},"cabin_baggage":{"kg":null,"pieces":1,"dimensions":"36 × 30 × 27"},"refundable":false,"changeable":false},"service_class":"ECONOMIC"},{"variant_id":"d6d495b08f84c9bb7755c67fb89b0c15:6216f4b2c5b065a73a13b6ce8448635a","offer_hash":"{\"Price\":7239,\"OriginalHash\":\"[{\\\"offerVariantHash\\\":\\\"1187df48d98b9584f4f27858f84e859d\\\",\\\"variantConditionsHash\\\":\\\"8801157fb33f7f057c622dca2a5c025e:7bdef7201719c823a5aaf6841db6231e\\\",\\\"pricingVariantHash\\\":\\\"d02d41e239c3a399fe97760da01e0e51\\\"}]\"}","price":{"amount":7238.46,"currency":"RUB"},"conditions":{"fare_family":"Выгодный","baggage":{"kg":10,"pieces":1},"cabin_baggage":{"kg":null,"pieces":1,"dimensions":"36 × 30 × 27"},"refundable":false,"changeable":true,"exchange":{"available":true,"deadline_hours":48}},"service_class":"ECONOMIC"},{"variant_id":"d6d495b08f84c9bb7755c67fb89b0c15:66fcf35c9562f0614bb9617bbea50c84","offer_hash":"{\"Price\":10575,\"OriginalHash\":\"[{\\\"offerVariantHash\\\":\\\"8183a5d6758d4c14a054c46a9b8a911e\\\",\\\"variantConditionsHash\\\":\\\"8801157fb33f7f057c622dca2a5c025e:81e223a99b8ce32d2cd1059cbdcab4ab\\\",\\\"pricingVariantHash\\\":\\\"c9b35b944c6dcfc365861b4102fea025\\\"}]\"}","price":{"amount":10574.83,"currency":"RUB"},"conditions":{"fare_family":"Максимум","baggage":{"kg":20,"pieces":1},"cabin_baggage":{"kg":null,"pieces":1,"dimensions":"36 × 30 × 27"},"refundable":true,"changeable":true,"exchange":{"available":true,"deadline_hours":48}},"service_cla
+2026-09-08 18:01:35 | INFO     | agent.base |   [executor] iteration 3/10
+2026-09-08 18:01:57 | DEBUG    | agent.base |   [executor] tokens=33310+715 | time=21.92s | finish=stop
+2026-09-08 18:01:57 | INFO     | agent.base | ✅ [executor] done in 53.66s (tokens 33310+715)
+2026-09-08 18:01:57 | INFO     | agent.orchestrator | 
+📊 Сессия: 11 запросов | ⏱️ 122.79s | 🔤 73430 in / 1728 out / 75158 total
